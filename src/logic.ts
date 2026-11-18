@@ -57,7 +57,8 @@ export interface Receipt {
   id: string;
   no: string;
   studentId: string;
-  branchId: string;
+  branchId: string; // branch that took the money
+  studentBranchId: string; // the student's branch; follows the student if they transfer
   date: string; // YYYY-MM-DD received
   method: Method;
   by: string; // user id
@@ -68,11 +69,13 @@ export interface Receipt {
 export interface Note {
   id: string;
   studentId: string;
+  branchId: string; // the student's branch
   type: NoteType;
   date: string;
   by: string;
   text: string;
   createdAt: string;
+  createdMs: number;
   promiseDate?: string; // payment notes
   kind?: string; // progress: "New memorisation" | "Revision"; conduct: "Absent" | "Late" | "Conduct"
   from?: string; // progress

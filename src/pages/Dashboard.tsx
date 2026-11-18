@@ -4,7 +4,7 @@ import { branchName, className, userName } from "../store";
 import { Avatar, Empty, go, Icon, Money, Page, Pill } from "../ui";
 
 export function Dashboard() {
-  const { db, students, receipts, now, today, cur, admin, multi, branchIds } = useScope();
+  const { db, classes, students, receipts, now, today, cur, admin, multi, branchIds } = useScope();
   const active = students.filter(isActive);
   const expected = active.reduce((a, s) => a + charge(db, s, now), 0);
   const collected = active.reduce((a, s) => a + Math.min(paid(db, s, now), charge(db, s, now)), 0);
@@ -63,7 +63,21 @@ export function Dashboard() {
         </a>
       </div>
 
-      {backupDue && (
+      {admin && !classes.length && (
+        <a className="banner" href="#/classes">
+          <Icon name="classes" />
+          <span className="grow"><b>Start by adding a class</b><small>Students are registered into a class, so add at least one first.</small></span>
+          <Icon name="next" size={18} />
+        </a>
+      )}
+      {classes.length > 0 && !students.length && (
+        <a className="banner" href="#/students/new">
+          <Icon name="plus" />
+          <span className="grow"><b>Register the first student</b><small>Their first payment can be taken straight after.</small></span>
+          <Icon name="next" size={18} />
+        </a>
+      )}
+      {backupDue && students.length > 0 && (
         <a className="banner" href="#/settings/data">
           <Icon name="database" />
           <span className="grow"><b>Download a backup</b><small>{db.settings.lastBackup ? "The last one is more than a month old." : "No backup has been saved yet."}</small></span>

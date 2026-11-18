@@ -1,0 +1,106 @@
+rules_version = '2';
+
+// Who can do what. The first person to set the school up becomes the owner and
+// is always an admin. Everyone else needs a document in /users keyed by their
+// email, added by an admin. Emails must be verified before anything is readable.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email != null && request.auth.token.email_verified == true;
+    }
+    function email() { return request.auth.token.email; }
+    function isOwner() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/meta/owner)
+        && get(/databases/$(database)/documents/meta/owner).data.email == email();
+    }
+    function hasUser() { return signedIn() && exists(/databases/$(database)/documents/users/$(email())); }
+    function me() { return get(/databases/$(database)/documents/users/$(email())).data; }
+    function active() { return isOwner() || (hasUser() && me().active == true); }
+    function isAdmin() { return isOwner() || (hasUser() && me().active == true && me().role == 'admin'); }
+    function isStaffOf(branch) { return hasUser() && me().active == true && me().branchId == branch; }
+    function canSee(branch) { return isAdmin() || isStaffOf(branch); }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // ----- school-wide -----
+    match /meta/owner {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.email == email(); // only possible while it does not exist
+    }
+    match /meta/settings {
+      allow read: if active();
+      allow create, update: if isAdmin();
+    }
+    match /meta/counters {
+      allow read: if active();
+      allow create: if isAdmin();
+      // Anyone registering a student may take the next student number, one at a time.
+      allow update: if active() && changed().hasOnly(['student']) && request.resource.data.student == resource.data.student + 1;
+    }
+    match /users/{id} {
+      allow read: if active() || (signedIn() && id == email());
+      allow create, update: if isAdmin() && request.resource.data.email == id;
+    }
+    match /branches/{id} {
+      allow read: if active();
+      allow create: if isAdmin();
+      // Staff may only take the next receipt number for their own branch.
+      allow update: if isAdmin()
+        || (isStaffOf(id) && changed().hasOnly(['nextReceipt']) && request.resource.data.nextReceipt == resource.data.nextReceipt + 1);
+    }
+    match /classes/{id} {
+      allow read: if canSee(resource.data.branchId);
+      allow create, update: if isAdmin();
+    }
+
+    // ----- records: never deleted -----
+    match /students/{id} {
+      allow read: if canSee(resource.data.branchId);
+      allow create: if isAdmin()
+        || (isStaffOf(request.resource.data.branchId)
+            && request.resource.data.waived == false
+            && request.resource.data.leftDate == null
+            && request.resource.data.exempt.size() == 0);
+      // Waivers, exemptions, transfers and marking as left are for admins.
+      allow update: if isAdmin()
+        || (isStaffOf(resource.data.branchId)
+            && !changed().hasAny(['id', 'no', 'branchId', 'waived', 'waiveReason', 'exempt', 'leftDate']));
+    }
+    match /receipts/{id} {
+      // branchId is the branch that took the money. studentBranchId follows the
+      // student, so after a transfer the new branch still sees what was paid.
+      allow read: if canSee(resource.data.branchId) || canSee(resource.data.studentBranchId);
+      allow create: if active()
+        && request.resource.data.by == email()
+        && request.resource.data.void == null
+        && request.resource.data.lines.size() > 0
+        && request.resource.data.studentBranchId == request.resource.data.branchId
+        && (isAdmin() || isStaffOf(request.resource.data.branchId));
+      // A receipt is never edited. An admin can void it once, with a reason,
+      // and a transfer may move which branch sees it.
+      allow update: if isAdmin() && (
+        (changed().hasOnly(['void'])
+          && resource.data.void == null
+          && request.resource.data.void.by == email()
+          && request.resource.data.void.reason.size() > 2)
+        || changed().hasOnly(['studentBranchId']));
+    }
+    match /notes/{id} {
+      allow read: if canSee(resource.data.branchId);
+      allow create: if active()
+        && request.resource.data.by == email()
+        && request.resource.data.createdMs <= request.time.toMillis() + 300000
+        && (isAdmin() || isStaffOf(request.resource.data.branchId));
+      // Notes are not edited; a transfer moves them to the student's new branch.
+      allow update: if isAdmin() && changed().hasOnly(['branchId']);
+      // Authors can remove their own note for 24 hours; after that only an admin.
+      allow delete: if isAdmin()
+        || (active() && resource.data.by == email() && request.time.toMillis() - resource.data.createdMs < 86400000);
+    }
+    match /activity/{id} {
+      allow read: if isAdmin();
+      allow create: if active() && request.resource.data.by == email();
+    }
+  }
+}

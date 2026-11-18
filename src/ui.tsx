@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { DB, gbp, initials, MonthStatus } from "./logic";
-import { currentUser, isAdmin, setView, useApp } from "./store";
+import { currentUser, isAdmin, setNotifier, setView, useApp } from "./store";
 
 /* ---------- router (hash based, so it works on any static host) ---------- */
 let wasPop = false;
@@ -166,8 +166,9 @@ export function Toaster() {
     pushToast = (text) => {
       setMsg({ id: Date.now(), text });
       window.clearTimeout(t);
-      t = window.setTimeout(() => setMsg(null), 2800);
+      t = window.setTimeout(() => setMsg(null), text.length > 40 ? 5000 : 2800);
     };
+    setNotifier(pushToast);
     return () => window.clearTimeout(t);
   }, []);
   return msg ? (

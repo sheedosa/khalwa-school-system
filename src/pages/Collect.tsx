@@ -55,6 +55,7 @@ function Pay({ id }: { id: string }) {
   const [note, setNote] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   if (!s || !branchIds.includes(s.branchId)) return <Page title="Collect payment" back="/collect"><div className="card"><Empty title="Student not found" /></div></Page>;
 
@@ -67,11 +68,19 @@ function Pay({ id }: { id: string }) {
     setCustom(null);
     setPicked((p) => (p.includes(m) ? p.filter((x) => x !== m) : [...p, m].sort()));
   };
-  const submit = () => {
-    const rid = recordPayment({ studentId: s.id, months: picked, amount, date, method, note: note.trim() });
-    if (rid) {
-      toast("Payment recorded");
-      go("/receipts/" + rid, true);
+  const submit = async () => {
+    if (busy) return; // a second tap must never issue a second receipt
+    setBusy(true);
+    try {
+      const rid = await recordPayment({ studentId: s.id, months: picked, amount, date, method, note: note.trim() });
+      if (rid) {
+        toast("Payment recorded");
+        go("/receipts/" + rid, true);
+      }
+    } catch (err) {
+      setBusy(false);
+      setConfirm(false);
+      toast((err as Error).message);
     }
   };
 
@@ -133,7 +142,7 @@ function Pay({ id }: { id: string }) {
       )}
 
       <Dialog open={confirm} onClose={() => setConfirm(false)} title="Check before recording"
-        footer={<><button type="button" className="btn" onClick={() => setConfirm(false)}>Go back</button><button type="button" className="btn gold grow" onClick={submit}><Icon name="check" size={18} />Record and issue receipt</button></>}>
+        footer={<><button type="button" className="btn" onClick={() => setConfirm(false)}>Go back</button><button type="button" className="btn gold grow" disabled={busy} onClick={submit}><Icon name="check" size={18} />{busy ? "Recording…" : "Record and issue receipt"}</button></>}>
         <dl className="kv confirm">
           <dt>Student</dt><dd><b>{s.name}</b><small>{s.no}</small></dd>
           <dt>For</dt><dd>{lines.map((l) => <span className="line" key={l.month}>{monthLabel(l.month)}<Money n={l.amount} /></span>)}</dd>

@@ -14,6 +14,7 @@ export function StudentForm({ id }: { id?: string }) {
     branchId: firstBranch, classId: existing?.classId || db.classes.find((c) => c.branchId === firstBranch && !c.archived)?.id || "",
     start: existing?.start || today(), waived: existing?.waived || false, waiveReason: existing?.waiveReason || "",
   }));
+  const [busy, setBusy] = useState(false);
   const set = (patch: Partial<StudentInput>) => setV((x) => ({ ...x, ...patch }));
   const branches = db.branches.filter((b) => b.active && (admin || b.id === user.branchId));
   const classes = db.classes.filter((c) => c.branchId === v.branchId && (!c.archived || c.id === existing?.classId));
@@ -23,11 +24,18 @@ export function StudentForm({ id }: { id?: string }) {
 
   if (id && !existing) return <Page title="Student not found" back="/students"><p className="muted">This student no longer exists.</p></Page>;
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!v.name.trim() || !v.guardian.trim() || !v.phone.trim() || !v.start) return;
+    if (busy || !v.name.trim() || !v.guardian.trim() || !v.phone.trim() || !v.start) return;
     const clean = { ...v, name: v.name.trim(), nameAr: v.nameAr.trim(), guardian: v.guardian.trim(), phone: v.phone.trim(), phone2: v.phone2.trim(), waiveReason: v.waived ? v.waiveReason.trim() : "" };
-    const sid = saveStudent(clean, id);
+    setBusy(true);
+    let sid: string;
+    try {
+      sid = await saveStudent(clean, id);
+    } catch (err) {
+      setBusy(false);
+      return toast((err as Error).message);
+    }
     if (id) {
       toast("Changes saved");
       goBack(backTo);
@@ -44,7 +52,7 @@ export function StudentForm({ id }: { id?: string }) {
       footer={
         <>
           <button type="button" className="btn" onClick={() => goBack(backTo)}>Cancel</button>
-          <button type="submit" form="student-form" className="btn primary grow"><Icon name="check" size={18} />{id ? "Save changes" : v.waived ? "Register student" : "Register and take payment"}</button>
+          <button type="submit" form="student-form" className="btn primary grow" disabled={busy}><Icon name="check" size={18} />{id ? "Save changes" : v.waived ? "Register student" : "Register and take payment"}</button>
         </>
       }
     >

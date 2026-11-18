@@ -9,7 +9,7 @@ function student(over: Partial<Student> = {}): Student {
 }
 function receipt(lines: [string, number][], over: Partial<Receipt> = {}): Receipt {
   return {
-    id: "r" + Math.random(), no: "X", studentId: "s1", branchId: "b1", date: "2026-10-06", method: "Cash", by: "u1", note: "",
+    id: "r" + Math.random(), no: "X", studentId: "s1", branchId: "b1", studentBranchId: "b1", date: "2026-10-06", method: "Cash", by: "u1", note: "",
     lines: lines.map(([month, amount]) => ({ month, amount })), void: null, ...over,
   };
 }

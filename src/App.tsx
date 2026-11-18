@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { currentUser, signIn, signOut, storageWorking, useApp } from "./store";
+import { currentUser, isCloud, signIn, signOut, storageWorking, useApp } from "./store";
+import { CloudGate } from "./pages/Auth";
 import { branchName } from "./store";
 import { Avatar, go, Icon, Page, Pill, Toaster, useIsMobile, usePath } from "./ui";
 import { Dashboard } from "./pages/Dashboard";
@@ -41,6 +42,7 @@ export function App() {
     else document.documentElement.setAttribute("data-theme", t);
   }, [app.session.theme]);
 
+  if (isCloud && (app.cloud.phase !== "ready" || !user)) return (<><CloudGate /><Toaster /></>);
   if (!user) return (<><Login /><Toaster /></>);
 
   const seg = path.split("/").filter(Boolean);
@@ -89,7 +91,7 @@ export function App() {
               <div><b>{user.name}</b><span>{user.role === "admin" ? "Admin" : "Staff, " + branchName(app.db, user.branchId || "")}</span></div>
             </div>
             <button type="button" className="rail-out" onClick={signOut}><Icon name="logout" size={16} />Sign out</button>
-            <p className="test-tag">Test version. Data is saved on this device only.</p>
+            {!isCloud && <p className="test-tag">Test version. Data is saved on this device only.</p>}
           </div>
         </aside>
       )}
@@ -163,7 +165,7 @@ function More() {
         ))}
       </div>
       <button type="button" className="btn block" onClick={signOut}><Icon name="logout" size={18} />Sign out</button>
-      <p className="test-tag center">Test version. Data is saved on this device only.</p>
+      {!isCloud && <p className="test-tag center">Test version. Data is saved on this device only.</p>}
     </Page>
   );
 }

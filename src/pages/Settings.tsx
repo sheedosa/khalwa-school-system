@@ -2,7 +2,7 @@ import { FormEvent, ReactNode, useRef, useState } from "react";
 import { addMonths, Branch, dateLabel, feeFor, gbp, monthLabel, monthsBetween, Role, User } from "../logic";
 import { useScope } from "../scope";
 import {
-  branchName, clearRecords, exportBackup, importBackup, removeFee, resetSample, saveBranch, saveReceiptSettings, saveSchool, saveUser, saveYear, setFee, setTheme, signOut, startNextYear, today, useApp, userName,
+  branchName, clearRecords, exportBackup, importBackup, isCloud, removeFee, resetSample, saveBranch, saveReceiptSettings, saveSchool, saveUser, saveYear, setFee, setTheme, signOut, startNextYear, today, useApp, userName,
 } from "../store";
 import { Dialog, download, Empty, Field, Icon, Page, Pill, Segmented, toast, useIsMobile } from "../ui";
 
@@ -219,7 +219,9 @@ function Staff() {
           ))}
         </div>
       </Card>
-      <p className="muted small">In this test version, accounts appear on the sign-in screen without a password. Email invitations and passwords are added when the system goes live.</p>
+      <p className="muted small">{isCloud
+        ? "To add someone: add their email here, then ask them to open the system, choose \"First time here\" and create a password with that same email. They confirm the email from a link we send them."
+        : "In this test version, accounts appear on the sign-in screen without a password. Real sign-in with email and password starts when the system goes live."}</p>
       {edit && <UserDialog u={edit === "new" ? null : edit} onClose={() => setEdit(null)} />}
     </>
   );
@@ -240,7 +242,7 @@ function UserDialog({ u, onClose }: { u: User | null; onClose: () => void }) {
     <Dialog open onClose={onClose} title={u ? "Edit account" : "Add staff account"} footer={<><button type="button" className="btn" onClick={onClose}>Cancel</button><button type="submit" form="user-form" className="btn primary grow">{u ? "Save" : "Add account"}</button></>}>
       <form id="user-form" className="form one" onSubmit={submit}>
         <Field label="Name"><input required autoFocus value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} /></Field>
-        <Field label="Email"><input type="email" value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} /></Field>
+        <Field label="Email" hint={isCloud ? (u ? "The sign-in email cannot be changed. Deactivate this account and add a new one instead." : "They will sign in with this address.") : undefined}><input type="email" required={isCloud} disabled={isCloud && !!u} value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} /></Field>
         <Field label="Role"><Segmented value={v.role} onChange={(role) => setV({ ...v, role })} options={[{ value: "staff", label: "Staff" }, { value: "admin", label: "Admin" }]} /></Field>
         {v.role === "staff" && <Field label="Branch"><select value={v.branchId} onChange={(e) => setV({ ...v, branchId: e.target.value })}>{db.branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select></Field>}
         {u && <label className="switch"><input type="checkbox" checked={v.active} onChange={(e) => setV({ ...v, active: e.target.checked })} /><span className="grow"><b>Can sign in</b><small>Deactivated staff keep their name on old receipts.</small></span></label>}
@@ -286,12 +288,12 @@ function Data() {
           <p className="muted">A backup is one file with every student, receipt, note and setting. Keep a copy somewhere safe each month.</p>
           <div className="btn-row">
             <button type="button" className="btn primary" onClick={() => { download(`khalwa-backup-${today()}.json`, exportBackup(), "application/json"); toast("Backup downloaded"); }}><Icon name="download" size={17} />Download backup</button>
-            <button type="button" className="btn" onClick={() => file.current?.click()}><Icon name="upload" size={17} />Restore from a backup</button>
+            {!isCloud && <button type="button" className="btn" onClick={() => file.current?.click()}><Icon name="upload" size={17} />Restore from a backup</button>}
             <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => pick(e.target.files?.[0])} />
           </div>
         </div>
       </Card>
-      <Card title="Test data" sub="For trying the system out">
+      {!isCloud && <Card title="Test data" sub="For trying the system out">
         <div className="pad stack-sm">
           <p className="muted">This test version starts with sample students so every screen has something to show. Everything is stored in this browser only: other devices will not see what you enter here.</p>
           <div className="btn-row">
@@ -299,7 +301,7 @@ function Data() {
             <button type="button" className="btn danger-ghost" onClick={() => setConfirm("clear")}>Remove all students and payments</button>
           </div>
         </div>
-      </Card>
+      </Card>}
       <Dialog open={!!confirm} onClose={() => setConfirm(null)} title={confirm === "sample" ? "Reload sample data?" : "Remove all students and payments?"}
         footer={<><button type="button" className="btn" onClick={() => setConfirm(null)}>Cancel</button><button type="button" className="btn danger grow" onClick={() => { if (confirm === "sample") resetSample(); else clearRecords(); setConfirm(null); toast(confirm === "sample" ? "Sample data reloaded" : "Students and payments removed"); }}>{confirm === "sample" ? "Reload sample data" : "Remove everything"}</button></>}>
         <p>{confirm === "sample" ? "Everything entered on this device is replaced with the original sample students, classes and settings." : "Students, receipts and notes are deleted so you can enter real ones. Settings, branches, classes and staff accounts are kept. Receipt numbers start again from 0001."}</p>
@@ -312,7 +314,7 @@ function Data() {
 function ActivityLog() {
   const { db } = useScope();
   return (
-    <Card title="Activity log" sub="The latest 400 changes on this device">
+    <Card title="Activity log" sub={isCloud ? "The latest 200 changes, from every device" : "The latest 400 changes on this device"}>
       <div className="list">
         {db.activity.slice(0, 100).map((a) => (
           <div className="row" key={a.id}>

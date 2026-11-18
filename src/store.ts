@@ -1,7 +1,10 @@
-// App state. In this test version everything is kept in the browser's local
-// storage. Every screen reads and writes through the functions in this file, so
-// moving to Firebase later means replacing this file, not the screens.
+// App state. Every screen reads and writes through the functions in this file.
+// In test mode the data lives in the browser's local storage. Once a Firebase
+// project is configured (src/firebase-config.ts) the same functions read from
+// and write to the shared database through src/cloud.ts.
 import { useSyncExternalStore } from "react";
+import type { Backend } from "./cloud";
+import { CLOUD } from "./firebase-config";
 import {
   Activity, addMonths, allocate, Branch, ClassRoom, DB, isoDate, Method, monthsBetween, Note, pad, Receipt, receiptTotal, Role, Settings, Student, User, ymOf, gbp, monthLabel,
 } from "./logic";
@@ -11,10 +14,18 @@ export interface Session {
   view: string; // "all" or a branch id (admins only)
   theme: "system" | "light" | "dark";
 }
+export type CloudPhase = "loading" | "signedOut" | "unverified" | "noAccess" | "setup" | "ready";
+export interface CloudStatus {
+  on: boolean; // false in test mode
+  phase: CloudPhase;
+  email: string;
+}
 interface AppState {
   db: DB;
   session: Session;
+  cloud: CloudStatus;
 }
+export const isCloud = CLOUD;
 
 const DB_KEY = "khalwa-db-v1";
 const SESSION_KEY = "khalwa-session-v1";
@@ -42,12 +53,29 @@ const GIRLS: [string, string][] = [["Fatima", "فاطمة"], ["Aisha", "عائش
 const FAMILIES: [string, string][] = [["Al-Fitouri", "الفيتوري"], ["Ben Omran", "بن عمران"], ["Al-Zawi", "الزاوي"], ["Shalgham", "شلغم"], ["Al-Mismari", "المسماري"], ["Dukali", "الدوكالي"], ["Ben Ghalbon", "بن غلبون"], ["Al-Werfalli", "الورفلي"], ["Al-Hadi", "الهادي"], ["Ben Saad", "بن سعد"], ["Abu Ajila", "أبو عجيلة"], ["Al-Tarhouni", "الترهوني"], ["Ben Naser", "بن ناصر"], ["Al-Gharyani", "الغرياني"], ["Ben Khalifa", "بن خليفة"], ["Al-Obeidi", "العبيدي"]];
 const FATHERS = ["Salah", "Mukhtar", "Abdulsalam", "Faraj", "Nuri", "Jamal", "Ramadan", "Fathi", "Miftah", "Emhemed"];
 
+/** The academic year that today falls in: September to June. */
+export function defaultYear() {
+  const t = new Date();
+  const startYear = t.getMonth() + 1 >= 9 ? t.getFullYear() : t.getFullYear() - 1;
+  return { startYear, start: `${startYear}-09`, end: `${startYear + 1}-06` };
+}
+export function defaultSettings(fee: number, start = defaultYear().start): Settings {
+  return {
+    school: { name: "Khalwa with Qur'an", nameAr: "خلوة مع القرآن", address: "", phone: "", currency: "GBP" },
+    fees: [{ from: start, amount: fee }],
+    year: { start, end: addMonths(start, 9), noFee: [] },
+    receipt: { footer: "جزاكم الله خيراً", paper: "A5" },
+    lastBackup: null,
+  };
+}
+function emptyDB(): DB {
+  return { version: 1, settings: defaultSettings(0), branches: [], users: [], classes: [], students: [], receipts: [], notes: [], activity: [], seq: { student: 1001 } };
+}
+
 export function seed(): DB {
   const r = rng(11);
   const t = new Date();
-  const startYear = t.getMonth() + 1 >= 9 ? t.getFullYear() : t.getFullYear() - 1;
-  const yStart = `${startYear}-09`;
-  const yEnd = `${startYear + 1}-06`;
+  const { startYear, start: yStart, end: yEnd } = defaultYear();
   const now = nowMonth();
   const todayIso = today();
 
@@ -130,7 +158,7 @@ export function seed(): DB {
       const maxDay = current ? Math.max(1, dayNow) : 24;
       const day = 1 + Math.floor(r() * maxDay);
       raw.push({
-        id: uid(), studentId: s.id, branchId: s.branchId, date: `${m}-${pad(day)}`, method: r() < 0.8 ? "Cash" : "Bank transfer",
+        id: uid(), studentId: s.id, branchId: s.branchId, studentBranchId: s.branchId, date: `${m}-${pad(day)}`, method: r() < 0.8 ? "Cash" : "Bank transfer",
         by: r() < 0.85 ? staff : "u1", note: "", lines: [{ month: m, amount: partial ? fee / 2 : fee }], void: null,
       });
     }
@@ -144,7 +172,8 @@ export function seed(): DB {
 
   // Notes
   const notes: Note[] = [];
-  const add = (n: Omit<Note, "id" | "createdAt">) => notes.push({ ...n, id: uid(), createdAt: n.date + "T10:00:00" });
+  const add = (n: Omit<Note, "id" | "createdAt" | "createdMs" | "branchId">) =>
+    notes.push({ ...n, id: uid(), branchId: students.find((s) => s.id === n.studentId)!.branchId, createdAt: n.date + "T10:00:00", createdMs: new Date(n.date + "T10:00:00").getTime() });
   const plus = (d: number) => isoDate(new Date(t.getFullYear(), t.getMonth(), t.getDate() + d));
   add({ studentId: students[1].id, type: "payment", date: plus(-2), by: "u2", text: "Father called. Will pay both months after salary.", promiseDate: plus(2) });
   add({ studentId: students[6].id, type: "payment", date: plus(-5), by: "u2", text: "Reminder sent by WhatsApp.", promiseDate: plus(-1) });
@@ -161,12 +190,14 @@ export function seed(): DB {
 
 /* ---------- store ---------- */
 function loadDB(): DB {
+  if (CLOUD) return emptyDB(); // filled from the shared database after sign-in
   try {
     const raw = localStorage.getItem(DB_KEY);
     if (raw) {
       const d = JSON.parse(raw) as DB;
       if (d && d.version === 1 && Array.isArray(d.students)) {
         d.settings.school.currency = "GBP"; // the school is in the UK; older test data said LYD
+        upgrade(d);
         return d;
       }
     }
@@ -175,23 +206,31 @@ function loadDB(): DB {
   }
   return seed();
 }
+/** Fill in fields that older saved test data does not have. */
+function upgrade(d: DB) {
+  for (const r of d.receipts) if (!r.studentBranchId) r.studentBranchId = d.students.find((s) => s.id === r.studentId)?.branchId || r.branchId;
+  for (const n of d.notes) {
+    if (!n.branchId) n.branchId = d.students.find((s) => s.id === n.studentId)?.branchId || "";
+    if (!n.createdMs) n.createdMs = new Date(n.createdAt).getTime() || 0;
+  }
+}
 function loadSession(): Session {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
-    if (raw) return { userId: null, view: "all", theme: "system", ...JSON.parse(raw) };
+    if (raw) return { userId: null, view: "all", theme: "system", ...JSON.parse(raw), ...(CLOUD ? { userId: null } : {}) };
   } catch {
     /* default */
   }
   return { userId: null, view: "all", theme: "system" };
 }
 
-let state: AppState = { db: loadDB(), session: loadSession() };
+let state: AppState = { db: loadDB(), session: loadSession(), cloud: { on: CLOUD, phase: "loading", email: "" } };
 const listeners = new Set<() => void>();
 let storageOk = true;
 
 function persist() {
   try {
-    localStorage.setItem(DB_KEY, JSON.stringify(state.db));
+    if (!CLOUD) localStorage.setItem(DB_KEY, JSON.stringify(state.db));
     localStorage.setItem(SESSION_KEY, JSON.stringify(state.session));
     storageOk = true;
   } catch {
@@ -218,7 +257,50 @@ export function getState() {
   return state;
 }
 
-function commit(mut: (d: DB) => void, action?: string, detail = "") {
+/* ---------- shared database (only when a Firebase project is configured) ---------- */
+let backend: Backend | null = null;
+let notify: (message: string) => void = () => {};
+/** The toast component registers itself here so the data layer can report problems. */
+export function setNotifier(fn: (message: string) => void) {
+  notify = fn;
+}
+if (CLOUD) {
+  import("./cloud").then((m) => {
+    backend = m.startCloud({
+      setCloud: (patch) => {
+        state = { ...state, cloud: { ...state.cloud, ...patch } };
+        emit();
+      },
+      patchDB: (patch) => {
+        state = { ...state, db: { ...state.db, ...patch } };
+        emit();
+      },
+      enter: (email, role, branchId) => {
+        const view = role === "staff" && branchId ? branchId : state.session.view;
+        state = { ...state, session: { ...state.session, userId: email, view } };
+        emit();
+      },
+      leave: () => {
+        state = { ...state, db: emptyDB(), session: { ...state.session, userId: null } };
+        emit();
+      },
+      notify: (m) => notify(m),
+    });
+  });
+}
+type AuthResult = Promise<string | null>; // an error message, or null when it worked
+const noBackend = async () => "Still connecting. Try again in a moment.";
+export const cloudAuth = {
+  signIn: (email: string, password: string): AuthResult => (backend ? backend.signIn(email, password) : noBackend()),
+  register: (email: string, password: string): AuthResult => (backend ? backend.register(email, password) : noBackend()),
+  resetPassword: (email: string): AuthResult => (backend ? backend.resetPassword(email) : noBackend()),
+  resendVerification: (): AuthResult => (backend ? backend.resendVerification() : noBackend()),
+  recheckVerified: (): AuthResult => (backend ? backend.recheckVerified() : noBackend()),
+  setupSchool: (p: { name: string; fee: number; start: string; branch: string }): AuthResult => (backend ? backend.setupSchool(p) : noBackend()),
+};
+
+function commit(mut: (d: DB) => void, action?: string, detail = "", skip: string[] = []) {
+  const prev = state.db;
   const db: DB = JSON.parse(JSON.stringify(state.db));
   mut(db);
   if (action) {
@@ -227,6 +309,7 @@ function commit(mut: (d: DB) => void, action?: string, detail = "") {
   }
   state = { ...state, db };
   emit();
+  backend?.push(prev, db, skip);
 }
 function setSession(patch: Partial<Session>) {
   state = { ...state, session: { ...state.session, ...patch } };
@@ -268,7 +351,8 @@ export function signIn(userId: string) {
   setSession({ userId, view: u?.role === "staff" && u.branchId ? u.branchId : "all" });
 }
 export function signOut() {
-  setSession({ userId: null });
+  if (CLOUD) backend?.signOut();
+  else setSession({ userId: null });
 }
 export function setView(view: string) {
   setSession({ view });
@@ -280,22 +364,21 @@ export function setTheme(theme: Session["theme"]) {
 /* ---------- students ---------- */
 export type StudentInput = Pick<Student, "name" | "nameAr" | "gender" | "dob" | "guardian" | "phone" | "phone2" | "branchId" | "classId" | "start" | "waived" | "waiveReason">;
 
-export function saveStudent(input: StudentInput, id?: string): string {
-  let outId = id || "";
-  commit(
-    (db) => {
-      if (id) {
-        const s = db.students.find((x) => x.id === id);
-        if (s) Object.assign(s, input);
-      } else {
-        const n = db.seq.student++;
-        outId = "s" + n;
-        db.students.push({ ...input, id: outId, no: "KQ-" + n, leftDate: null, exempt: [], createdAt: new Date().toISOString() });
-      }
-    },
-    id ? "Edited student" : "Registered student",
-    input.name,
-  );
+/** Saves a student and resolves with their id. Rejects if a new student number cannot be reserved (offline). */
+export async function saveStudent(input: StudentInput, id?: string): Promise<string> {
+  if (id) {
+    commit((db) => {
+      const s = db.students.find((x) => x.id === id);
+      if (s) Object.assign(s, input);
+    }, "Edited student", input.name);
+    return id;
+  }
+  const n = backend ? await backend.nextStudentNumber() : state.db.seq.student;
+  const outId = "s" + n;
+  commit((db) => {
+    db.seq.student = n + 1;
+    db.students.push({ ...input, id: outId, no: "KQ-" + n, leftDate: null, exempt: [], createdAt: new Date().toISOString() });
+  }, "Registered student", input.name);
   return outId;
 }
 export function findDuplicate(db: DB, name: string, phone: string, ignoreId?: string) {
@@ -318,6 +401,9 @@ export function transferStudent(id: string, branchId: string, classId: string) {
     if (x) {
       x.branchId = branchId;
       x.classId = classId;
+      // Their history moves with them so the new branch sees what has been paid.
+      for (const r of db.receipts) if (r.studentId === id) r.studentBranchId = branchId;
+      for (const n of db.notes) if (n.studentId === id) n.branchId = branchId;
     }
   }, "Transferred student", `${s?.name} to ${branchName(state.db, branchId)}`);
 }
@@ -332,23 +418,31 @@ export function toggleExempt(id: string, month: string) {
 }
 
 /* ---------- payments ---------- */
-export function recordPayment(p: { studentId: string; months: string[]; amount: number; date: string; method: Method; note: string }): string | null {
+/**
+ * Records a payment and resolves with the receipt id. With the shared database
+ * the receipt number is reserved on the server first, so two desks can never
+ * issue the same number; that needs a connection and rejects without one.
+ */
+export async function recordPayment(p: { studentId: string; months: string[]; amount: number; date: string; method: Method; note: string }): Promise<string | null> {
   const s = state.db.students.find((x) => x.id === p.studentId);
   if (!s) return null;
   const { lines } = allocate(state.db, s, p.months, p.amount);
   if (!lines.length) return null;
-  const id = uid();
-  let no = "";
-  commit(
-    (db) => {
+  const base = { id: uid(), studentId: s.id, branchId: s.branchId, studentBranchId: s.branchId, date: p.date, method: p.method, by: state.session.userId || "", note: p.note, lines, void: null };
+  const detail = `${s.name}, ${gbp(lines.reduce((a, l) => a + l.amount, 0))}`;
+  if (backend) {
+    const no = await backend.issueReceipt(base);
+    // Already written on the server together with the number; just mirror it here and log it.
+    commit((db) => {
+      if (!db.receipts.some((r) => r.id === base.id)) db.receipts.push({ ...base, no });
+    }, "Recorded payment", detail, ["receipts", "branches"]);
+  } else {
+    commit((db) => {
       const b = db.branches.find((b) => b.id === s.branchId)!;
-      no = `${b.prefix}-${String(b.nextReceipt++).padStart(4, "0")}`;
-      db.receipts.push({ id, no, studentId: s.id, branchId: s.branchId, date: p.date, method: p.method, by: state.session.userId || "", note: p.note, lines, void: null });
-    },
-    "Recorded payment",
-    `${s.name}, ${gbp(lines.reduce((a, l) => a + l.amount, 0))}`,
-  );
-  return id;
+      db.receipts.push({ ...base, no: `${b.prefix}-${String(b.nextReceipt++).padStart(4, "0")}` });
+    }, "Recorded payment", detail);
+  }
+  return base.id;
 }
 export function voidReceipt(id: string, reason: string) {
   const r = state.db.receipts.find((x) => x.id === id);
@@ -359,15 +453,15 @@ export function voidReceipt(id: string, reason: string) {
 }
 
 /* ---------- notes ---------- */
-export function addNote(n: Omit<Note, "id" | "createdAt" | "by">) {
+export function addNote(n: Omit<Note, "id" | "createdAt" | "createdMs" | "by" | "branchId">) {
   const s = state.db.students.find((x) => x.id === n.studentId);
   commit((db) => {
-    db.notes.push({ ...n, id: uid(), by: state.session.userId || "", createdAt: new Date().toISOString() });
+    db.notes.push({ ...n, id: uid(), branchId: s?.branchId || "", by: state.session.userId || "", createdAt: new Date().toISOString(), createdMs: Date.now() });
   }, "Added note", `${s?.name} (${n.type})`);
 }
 export function canDeleteNote(n: Note) {
   if (isAdmin()) return true;
-  return n.by === state.session.userId && Date.now() - new Date(n.createdAt).getTime() < 24 * 3600 * 1000;
+  return n.by === state.session.userId && Date.now() - n.createdMs < 24 * 3600 * 1000;
 }
 export function deleteNote(id: string) {
   commit((db) => {
@@ -437,11 +531,17 @@ export function saveUser(u: { name: string; email: string; role: Role; branchId:
   // Never leave the school without an active admin.
   const others = state.db.users.filter((x) => x.id !== id && x.role === "admin" && x.active);
   if (id && others.length === 0 && (u.role !== "admin" || !u.active)) return "At least one active admin is needed.";
+  // With real logins the account is keyed by the email the person signs in with.
+  const email = u.email.trim().toLowerCase();
+  if (CLOUD && !id) {
+    if (!/^\S+@\S+\.\S+$/.test(email)) return "Enter the email address this person will sign in with.";
+    if (state.db.users.some((x) => x.id === email)) return "This email already has an account.";
+  }
   commit((db) => {
     if (id) {
       const x = db.users.find((x) => x.id === id);
-      if (x) Object.assign(x, u);
-    } else db.users.push({ ...u, id: "u" + uid() });
+      if (x) Object.assign(x, u, CLOUD ? { email: x.email } : {});
+    } else db.users.push({ ...u, email: CLOUD ? email : u.email, id: CLOUD ? email : "u" + uid() });
   }, id ? "Edited staff account" : "Added staff account", u.name);
   return null;
 }
@@ -454,12 +554,14 @@ export function exportBackup(): string {
   return JSON.stringify(state.db, null, 1);
 }
 export function importBackup(text: string): string | null {
+  if (CLOUD) return "Restoring over the shared database is switched off.";
   try {
     const d = JSON.parse(text) as DB;
     if (!d || d.version !== 1 || !Array.isArray(d.students) || !Array.isArray(d.receipts) || !d.settings) return "This file is not a Khalwa backup.";
     d.settings.school.currency = "GBP";
+    upgrade(d);
     const keep = state.session.userId;
-    state = { db: d, session: { ...state.session, userId: d.users.some((u) => u.id === keep) ? keep : null } };
+    state = { ...state, db: d, session: { ...state.session, userId: d.users.some((u) => u.id === keep) ? keep : null } };
     emit();
     return null;
   } catch {
@@ -467,11 +569,13 @@ export function importBackup(text: string): string | null {
   }
 }
 export function resetSample() {
-  state = { db: seed(), session: { ...state.session, view: "all" } };
+  if (CLOUD) return;
+  state = { ...state, db: seed(), session: { ...state.session, view: "all" } };
   emit();
 }
 /** Remove all students, payments and notes but keep settings, branches, classes and staff. */
 export function clearRecords() {
+  if (CLOUD) return;
   commit((db) => {
     db.students = [];
     db.receipts = [];

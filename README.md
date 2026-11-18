@@ -2,7 +2,7 @@
 
 Student registration and monthly fee tracking for the Khalwa with Qur'an school, across two branches.
 
-**Status: test version.** It runs entirely in the browser with sample students so the school can try every screen. Data is saved on the device that entered it and is not shared between devices yet. Shared data and real logins come in the next step (Firebase, free plan).
+**Status:** the live link runs in test mode, with sample students saved only in each browser, until a Firebase project is connected. Once it is, everyone signs in with email and password and shares one database. The steps are in [docs/GO-LIVE.md](docs/GO-LIVE.md).
 
 ## What it does
 
@@ -20,18 +20,21 @@ Student registration and monthly fee tracking for the Khalwa with Qur'an school,
 
 ```
 npm install
-npm run dev
+npm run dev          # test mode, sample data in the browser
+npm run dev:cloud    # real sign-in and shared data, against local Firebase emulators (needs Java)
 ```
 
-`npm test` runs the fee calculation tests. `npm run build` type-checks and builds to `dist/`.
+- `npm test` runs the fee calculation tests.
+- `npm run test:rules` runs the access-rule tests on the Firestore emulator (needs Java).
+- `npm run build` type-checks and builds to `dist/`.
 
 ## How it is put together
 
 - `src/logic.ts`: types and the fee rules (what is charged, paid and owed). Pure functions, covered by `src/logic.test.ts`.
-- `src/store.ts`: all reads and writes. Uses local storage today; this is the one file to replace when moving to Firebase.
-- `src/pages/`: one file per screen.
-- `src/ui.tsx`: shared pieces (page frame, dialogs, router, icons).
-- `src/styles.css`: the theme, taken from the school's logo.
+- `src/store.ts`: every read and write the screens make. Keeps the school's records in memory; saves to local storage in test mode.
+- `src/cloud.ts`: sign-in and the shared database (Firebase Auth and Firestore). Loaded only when `src/firebase-config.ts` is filled in.
+- `firestore.rules`: who may read and change what, enforced by the database. Covered by `tests/rules.test.ts`.
+- `src/pages/`: one file per screen. `src/ui.tsx`: shared pieces. `src/styles.css`: the theme, from the school's logo.
 
 ## Publishing
 
