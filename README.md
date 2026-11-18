@@ -35,4 +35,4 @@ npm run dev
 
 ## Publishing
 
-Every push to `main` builds the site and publishes it to GitHub Pages (`.github/workflows/deploy.yml`). In the repository settings, Pages must have its source set to "GitHub Actions".
+Every push to `main` builds the site and puts it on the `gh-pages` branch (`.github/workflows/deploy.yml`). In the repository settings, Pages must be set to deploy from the `gh-pages` branch, root folder.
