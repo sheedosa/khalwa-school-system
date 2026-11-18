@@ -13,8 +13,8 @@ export function Classes() {
   const list = classes.filter((c) => showArchived || !c.archived).sort((a, b) => a.branchId.localeCompare(b.branchId) || a.name.localeCompare(b.name));
   const archivedCount = classes.filter((c) => c.archived).length;
   return (
-    <Page title="Classes" back={mobile ? "/more" : undefined}
-      actions={admin ? <button type="button" className="btn primary" onClick={() => setEdit("new")}><Icon name="plus" size={18} /><span className="btn-label">Add class</span></button> : undefined}>
+    <Page title="Classes" back={mobile ? "/more" : undefined} parent="More"
+      actions={admin ? <button type="button" className="btn primary" aria-label="Add class" title="Add class" onClick={() => setEdit("new")}><Icon name="plus" size={18} /><span className="btn-label">Add class</span></button> : undefined}>
       {!list.length && <div className="card"><Empty title="No classes yet" icon="classes">{admin ? "Add the first class to start registering students." : "An admin can add classes."}</Empty></div>}
       <div className="class-grid">
         {list.map((c) => {

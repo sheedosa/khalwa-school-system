@@ -57,7 +57,7 @@ function Pay({ id }: { id: string }) {
   const [noteOpen, setNoteOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  if (!s || !branchIds.includes(s.branchId)) return <Page title="Collect payment" back="/collect"><div className="card"><Empty title="Student not found" /></div></Page>;
+  if (!s || !branchIds.includes(s.branchId)) return <Page title="Student not found" back="/collect" parent="Collect payment"><div className="card"><Empty title="Student not found" /></div></Page>;
 
   const sum = picked.reduce((a, m) => a + owed(db, s, m), 0);
   const amount = custom === null ? sum : Number(custom) || 0;
@@ -86,8 +86,10 @@ function Pay({ id }: { id: string }) {
 
   return (
     <Page
-      title="Collect payment"
+      title={s.name}
+      mobileTitle="Collect payment"
       back="/collect"
+      parent="Collect payment"
       footer={options.length && !s.waived ? (
         <button type="button" className="btn gold grow" disabled={!valid} onClick={() => setConfirm(true)}>
           Review payment{valid ? <> · {gbp(amount)}</> : null}

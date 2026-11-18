@@ -21,7 +21,7 @@ export function Receipts() {
   const shown = list.slice(0, 150);
 
   return (
-    <Page title="Receipts" wide back={mobile ? "/more" : undefined}
+    <Page title="Receipts" wide back={mobile ? "/more" : undefined} parent="More"
       toolbar={
         <>
           <SearchInput value={f.q} onChange={(q) => set({ q })} placeholder="Receipt number or student" />
@@ -77,7 +77,7 @@ export function ReceiptPage({ id }: { id: string }) {
   const r = db.receipts.find((x) => x.id === id);
   const [voiding, setVoiding] = useState(false);
   const [reason, setReason] = useState("");
-  if (!r || !branchIds.includes(r.branchId)) return <Page title="Receipt" back="/receipts"><div className="card"><Empty title="Receipt not found" icon="receipt" /></div></Page>;
+  if (!r || !branchIds.includes(r.branchId)) return <Page title="Receipt" back="/receipts" parent="Receipts"><div className="card"><Empty title="Receipt not found" icon="receipt" /></div></Page>;
   const s = db.students.find((x) => x.id === r.studentId);
   const school = db.settings.school;
   const total = receiptTotal(r);
@@ -94,7 +94,7 @@ export function ReceiptPage({ id }: { id: string }) {
     }
   };
   return (
-    <Page title={"Receipt " + r.no} back="/receipts"
+    <Page title={r.no} mobileTitle={"Receipt " + r.no} back="/receipts" parent="Receipts"
       actions={admin && !r.void ? <button type="button" className="btn desk-only danger-ghost" onClick={() => setVoiding(true)}>Void receipt</button> : undefined}
       footer={
         <>

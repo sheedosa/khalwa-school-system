@@ -22,7 +22,7 @@ export function StudentForm({ id }: { id?: string }) {
   const fee = feeFor(db.settings, ymOf(v.start || today()));
   const backTo = id ? "/students/" + id : "/students";
 
-  if (id && !existing) return <Page title="Student not found" back="/students"><p className="muted">This student no longer exists.</p></Page>;
+  if (id && !existing) return <Page title="Student not found" back="/students" parent="Students"><p className="muted">This student no longer exists.</p></Page>;
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -49,6 +49,7 @@ export function StudentForm({ id }: { id?: string }) {
     <Page
       title={id ? "Edit student" : "Register student"}
       back={backTo}
+      parent={existing ? existing.name : "Students"}
       footer={
         <>
           <button type="button" className="btn" onClick={() => goBack(backTo)}>Cancel</button>

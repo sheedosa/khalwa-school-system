@@ -79,14 +79,14 @@ b { font-weight: 600; }
 .logo { display: block; height: auto; user-select: none; -webkit-user-drag: none; }
 
 /* ---------- shell ---------- */
-.app { height: 100%; display: grid; grid-template-columns: 252px minmax(0, 1fr); }
+.app { height: 100%; display: grid; grid-template-columns: 252px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
 .main { min-width: 0; min-height: 0; display: flex; flex-direction: column; height: 100%; }
 .scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .page { display: flex; flex-direction: column; gap: 18px; padding: 10px 32px 48px; max-width: 1200px; width: 100%; margin: 0 auto; animation: page-in 0.16s ease-out; }
 .page.wide { max-width: 1500px; }
 @keyframes page-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-.rail { display: flex; flex-direction: column; height: 100%; overflow-y: auto; padding: 22px 14px 16px; gap: 22px; }
+.rail { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 22px 14px 16px; gap: 18px; }
 .brand { display: flex; align-items: center; gap: 12px; padding: 0 6px; }
 .brand-logo { height: 62px; width: auto; flex: none; }
 .logo-tile { width: 46px; height: 46px; border-radius: 13px; background: #fff; object-fit: contain; padding: 3px; flex: none; box-shadow: 0 0 0 1px var(--line); }
@@ -94,13 +94,17 @@ b { font-weight: 600; }
 .brand-name { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .brand-name b { font-family: var(--display); font-weight: 700; font-size: 15.5px; letter-spacing: -0.02em; white-space: nowrap; }
 .brand-name span { color: var(--fg-2); font-size: 14px; }
-.nav { display: flex; flex-direction: column; gap: 2px; }
-.nav-gap { margin-top: 14px; }
-.nav a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-control); color: var(--fg-2); font-weight: 600; }
+/* The sidebar scrolls by itself on short screens; the brand and the account stay put. */
+.nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; margin: 0 -6px; padding: 0 6px 6px; scrollbar-width: thin; }
+.nav-group { display: flex; flex-direction: column; gap: 1px; margin-top: 16px; }
+.nav-group:first-child { margin-top: 0; }
+.nav-label { font-size: 12.5px; font-weight: 600; color: var(--fg-3); padding: 0 12px 5px; }
+.nav a { display: flex; align-items: center; gap: 11px; padding: 0 10px 0 12px; min-height: 38px; border-radius: var(--r-control); color: var(--fg-2); font-weight: 600; font-size: 14.5px; }
+.nav-badge { flex: none; min-width: 24px; text-align: center; padding: 1px 7px; border-radius: var(--r-tag); background: var(--bad-soft); color: var(--bad); font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .nav a:hover { color: var(--fg); background: var(--tone); }
 .nav a[aria-current="page"] { background: var(--card); color: var(--fg); }
 .nav a[aria-current="page"] .icon { color: var(--teal); }
-.rail-foot { margin-top: auto; padding: 0 8px; display: flex; flex-direction: column; gap: 12px; }
+.rail-foot { flex: none; padding: 14px 8px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
 .who { display: flex; gap: 10px; align-items: center; }
 .who b { display: block; line-height: 1.3; }
 .who div span { font-size: 13px; color: var(--fg-2); }
@@ -109,6 +113,13 @@ b { font-weight: 600; }
 .test-tag { font-size: 12.5px; color: var(--fg-3); line-height: 1.4; }
 
 .topbar { flex: none; display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 18px 32px 8px; }
+.crumb { color: var(--fg-3); }
+.crumb:hover { color: var(--teal); }
+.crumb-sep { color: var(--fg-3); opacity: 0.5; margin: 0 10px; font-weight: 500; }
+.group-label { padding: 6px 6px 8px; color: var(--fg-2); font-size: 14px; }
+.menu-group { display: flex; flex-direction: column; }
+.list-label { padding: 16px 16px 4px; font-size: 12.5px; font-weight: 600; color: var(--fg-3); }
+.list-label:first-child { padding-top: 12px; }
 .topbar h1 { padding-bottom: 2px; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar-tools { display: flex; align-items: center; gap: 10px; flex: none; }
 .toolbar-strip { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 6px 32px 12px; }
@@ -462,7 +473,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .class-card .progress { margin-top: 6px; }
 .settings { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; max-width: 1100px; }
 .settings-nav { position: sticky; top: 0; }
-.settings-nav .row { min-height: 60px; padding: 10px 16px; }
+.settings-nav .row { min-height: 56px; padding: 8px 16px; }
 .settings-nav .row[aria-current="page"] { background: var(--tone); }
 .settings-body { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 .fee-now { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 20px 12px; font-weight: 500; }
@@ -567,6 +578,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 
   .topbar { min-height: calc(60px + env(safe-area-inset-top, 0px)); padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 4px max(20px, env(safe-area-inset-left, 0px)); gap: 8px; }
   .topbar h1 { font-size: 31px; }
+  .crumb, .crumb-sep { display: none; }
   .topbar:has(.back) { padding-left: max(12px, env(safe-area-inset-left, 0px)); }
   .topbar:has(.back) h1 { font-size: 21px; font-weight: 700; letter-spacing: -0.025em; }
   .topbar-tools { gap: 8px; }

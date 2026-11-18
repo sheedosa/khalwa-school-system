@@ -60,7 +60,7 @@ export function Students() {
       title="Students"
       wide
       toolbar={toolbar}
-      actions={<a className="btn primary" href="#/students/new"><Icon name="plus" size={18} /><span className="btn-label">Register student</span></a>}
+      actions={<a className="btn primary" href="#/students/new" aria-label="Register student" title="Register student"><Icon name="plus" size={18} /><span className="btn-label">Register student</span></a>}
     >
       <p className="count">{rows.length} student{rows.length === 1 ? "" : "s"}</p>
       {!rows.length ? (

@@ -19,7 +19,7 @@ export function Reports({ name, arg }: { name?: string; arg?: string }) {
   if (name === "statement") return <Statement id={arg} />;
   if (name === "enrollment") return <Enrollment />;
   return (
-    <Page title="Reports" back={mobile ? "/more" : undefined}>
+    <Page title="Reports" back={mobile ? "/more" : undefined} parent="More">
       <div className="report-grid">
         {LIST.map((r) => (
           <a key={r.id} className="card report-card" href={"#/reports/" + r.id}>
@@ -37,11 +37,11 @@ export function Reports({ name, arg }: { name?: string; arg?: string }) {
 function ReportFrame({ title, sub, filters, onExport, children }: { title: string; sub: string; filters?: ReactNode; onExport: () => void; children: ReactNode }) {
   const { db, branchIds } = useScope();
   return (
-    <Page title={title} back="/reports" wide toolbar={filters}
+    <Page title={title} back="/reports" parent="Reports" wide toolbar={filters}
       actions={
         <>
-          <button type="button" className="btn" onClick={onExport}><Icon name="download" size={17} /><span className="btn-label">Export</span></button>
-          <button type="button" className="btn primary" onClick={() => window.print()}><Icon name="print" size={17} /><span className="btn-label">Print</span></button>
+          <button type="button" className="btn" aria-label="Export to Excel" title="Export to Excel (CSV)" onClick={onExport}><Icon name="download" size={17} /><span className="btn-label">Export</span></button>
+          <button type="button" className="btn primary" aria-label="Print" title="Print" onClick={() => window.print()}><Icon name="print" size={17} /><span className="btn-label">Print</span></button>
         </>
       }>
       <div className="print-area report">
@@ -215,7 +215,7 @@ function Statement({ id }: { id?: string }) {
   if (!s) {
     const hits = (q.trim() ? searchStudents(db, q).filter((x) => students.includes(x)) : [...students].sort((a, b) => a.name.localeCompare(b.name))).slice(0, 30);
     return (
-      <Page title="Student statement" back="/reports" toolbar={<SearchInput value={q} onChange={setQ} placeholder="Choose a student" />}>
+      <Page title="Student statement" back="/reports" parent="Reports" toolbar={<SearchInput value={q} onChange={setQ} placeholder="Choose a student" />}>
         <div className="card list">
           {hits.map((x) => (
             <a key={x.id} className="row link" href={"#/reports/statement/" + x.id}>

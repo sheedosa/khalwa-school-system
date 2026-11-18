@@ -279,7 +279,7 @@ export function searchStudents(db: DB, q: string) {
 
 /* ---------- page frame ---------- */
 const scrollMemo = new Map<string, number>();
-export function Page({ title, back, actions, toolbar, footer, children, wide }: { title: ReactNode; back?: string; actions?: ReactNode; toolbar?: ReactNode; footer?: ReactNode; children: ReactNode; wide?: boolean }) {
+export function Page({ title, mobileTitle, back, parent, actions, toolbar, footer, children, wide }: { title: ReactNode; mobileTitle?: ReactNode; back?: string; parent?: string; actions?: ReactNode; toolbar?: ReactNode; footer?: ReactNode; children: ReactNode; wide?: boolean }) {
   const mobile = useIsMobile();
   const path = usePath();
   const ref = useRef<HTMLDivElement>(null);
@@ -295,11 +295,14 @@ export function Page({ title, back, actions, toolbar, footer, children, wide }: 
     <div className="main">
       <header className="topbar">
         {back && (
-          <button type="button" className="iconbtn back" aria-label="Back" onClick={() => goBack(back)}>
+          <button type="button" className="iconbtn back" aria-label="Back" title="Back" onClick={() => goBack(back)}>
             <Icon name="back" />
           </button>
         )}
-        <h1>{title}</h1>
+        <h1>
+          {back && parent && !mobile && <><a className="crumb" href={"#" + back}>{parent}</a><span className="crumb-sep" aria-hidden="true">/</span></>}
+          {mobile && mobileTitle ? mobileTitle : title}
+        </h1>
         <div className="topbar-tools">
           {!mobile && <QuickSearch />}
           {!back || !mobile ? <BranchSwitch /> : null}

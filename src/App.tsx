@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { currentUser, isCloud, resetSample, signIn, signOut, storageWorking, useApp } from "./store";
+import { balance, isActive } from "./logic";
+import { currentUser, isCloud, nowMonth, resetSample, signIn, signOut, storageWorking, useApp, viewBranches } from "./store";
 import { CloudGate } from "./pages/Auth";
 import { branchName } from "./store";
 import { Avatar, BrandScreen, go, Icon, Logo, Page, Pill, toast, Toaster, useIsMobile, usePath } from "./ui";
@@ -14,20 +15,48 @@ import { Reports } from "./pages/Reports";
 import { Classes } from "./pages/Classes";
 import { SettingsPage } from "./pages/Settings";
 
-const LOGO = "./logo.webp";
+interface NavItem { path: string; label: string; icon: string; sub?: string; exact?: boolean; not?: string; badge?: number }
+interface NavGroup { label: string; items: NavItem[] }
 
-const NAV: { path: string; label: string; icon: string; group: number }[] = [
-  { path: "/", label: "Dashboard", icon: "home", group: 0 },
-  { path: "/students", label: "Students", icon: "students", group: 0 },
-  { path: "/collect", label: "Collect payment", icon: "collect", group: 1 },
-  { path: "/sheet", label: "Monthly sheet", icon: "sheet", group: 1 },
-  { path: "/receipts", label: "Receipts", icon: "receipt", group: 1 },
-  { path: "/reports", label: "Reports", icon: "report", group: 1 },
-  { path: "/classes", label: "Classes", icon: "classes", group: 2 },
-  { path: "/settings", label: "Settings", icon: "settings", group: 2 },
-];
+/** The whole system, grouped by the job being done. The sidebar and the phone's More page both read this. */
+function navGroups(admin: boolean, owing: number): NavGroup[] {
+  return [
+    { label: "", items: [{ path: "/", label: "Dashboard", icon: "home", exact: true }] },
+    { label: "Students", items: [
+      { path: "/students", label: "All students", icon: "students", not: "/students/new" },
+      { path: "/students/new", label: "Register student", icon: "plus" },
+    ] },
+    { label: "Fees", items: [
+      { path: "/collect", label: "Collect payment", icon: "collect" },
+      { path: "/sheet", label: "Monthly sheet", icon: "sheet" },
+      { path: "/receipts", label: "Receipts", icon: "receipt", sub: "Every payment taken, search and reprint" },
+    ] },
+    { label: "Reports", items: [
+      { path: "/reports/collection", label: "Monthly collection", icon: "coins", sub: "Expected, collected and outstanding" },
+      { path: "/reports/owed", label: "Owed list", icon: "alert", sub: "Who owes, which months, guardian's phone", badge: owing },
+      { path: "/reports/statement", label: "Student statement", icon: "note", sub: "One student's year on a page" },
+      { path: "/reports/enrollment", label: "Enrollment", icon: "report", sub: "Students per branch and class" },
+    ] },
+    { label: "School", items: [
+      { path: "/classes", label: "Classes", icon: "classes", sub: "Groups, teachers and schedules" },
+      { path: "/settings", label: admin ? "Settings" : "My account", icon: admin ? "settings" : "user", sub: admin ? "Fee, year, branches, staff, backup" : "Theme and sign out" },
+    ] },
+  ];
+}
 function isCurrent(path: string, nav: string) {
   return nav === "/" ? path === "/" : path === nav || path.startsWith(nav + "/");
+}
+function itemCurrent(path: string, n: NavItem) {
+  if (n.exact) return path === n.path;
+  if (n.not && isCurrent(path, n.not)) return false;
+  return isCurrent(path, n.path);
+}
+
+/** How many active students in the branches being viewed owe something. Shown beside "Owed list". */
+function owingCount(app: ReturnType<typeof useApp>) {
+  const ids = viewBranches(app);
+  const now = nowMonth();
+  return app.db.students.filter((st) => ids.includes(st.branchId) && isActive(st) && balance(app.db, st, now) > 0).length;
 }
 
 export function App() {
@@ -71,6 +100,8 @@ export function App() {
     default: screen = <Dashboard />;
   }
 
+  const groups = navGroups(user.role === "admin", owingCount(app));
+
   // Task screens (taking a payment, a form, a receipt) get the full height on phones.
   const task = (seg[0] === "collect" && !!seg[1]) || (seg[0] === "students" && (seg[1] === "new" || seg[2] === "edit")) || (seg[0] === "receipts" && !!seg[1]);
 
@@ -83,11 +114,16 @@ export function App() {
             <div className="brand-name"><b>Khalwa with Qur'an</b><span lang="ar">خلوة مع القرآن</span></div>
           </div>
           <nav className="nav" aria-label="Main">
-            {NAV.map((n, i) => (
-              <div key={n.path} className={i > 0 && NAV[i - 1].group !== n.group ? "nav-gap" : undefined}>
-                <a href={"#" + n.path} aria-current={isCurrent(path, n.path) ? "page" : undefined}>
-                  <Icon name={n.icon} />{n.label}
-                </a>
+            {groups.map((g) => (
+              <div className="nav-group" key={g.label || "top"} role="group" aria-label={g.label || undefined}>
+                {g.label && <span className="nav-label">{g.label}</span>}
+                {g.items.map((n) => (
+                  <a key={n.path} href={"#" + n.path} aria-current={itemCurrent(path, n) ? "page" : undefined}>
+                    <Icon name={n.icon} size={19} />
+                    <span className="grow">{n.label}</span>
+                    {!!n.badge && <span className="nav-badge" title={n.badge + " students owe"}>{n.badge}</span>}
+                  </a>
+                ))}
               </div>
             ))}
           </nav>
@@ -104,7 +140,7 @@ export function App() {
       {screen}
       {mobile && !task && (
         <nav className="tabbar" aria-label="Main">
-          <a href="#/" aria-current={path === "/" ? "page" : undefined}><Icon name="home" size={22} />Home</a>
+          <a href="#/" aria-current={path === "/" ? "page" : undefined}><Icon name="home" size={22} />Dashboard</a>
           <a href="#/students" aria-current={isCurrent(path, "/students") ? "page" : undefined}><Icon name="students" size={22} />Students</a>
           <a href="#/collect" className="tab-main" aria-current={isCurrent(path, "/collect") ? "page" : undefined} aria-label="Collect payment"><span><Icon name="collect" size={24} /></span>Collect</a>
           <a href="#/sheet" aria-current={isCurrent(path, "/sheet") ? "page" : undefined}><Icon name="sheet" size={22} />Sheet</a>
@@ -143,13 +179,11 @@ function Login() {
 function More() {
   const app = useApp();
   const user = currentUser(app)!;
-  const items = NAV.filter((n) => ["/receipts", "/reports", "/classes", "/settings"].includes(n.path));
-  const sub: Record<string, string> = {
-    "/receipts": "Every payment taken, search and reprint",
-    "/reports": "Collection, owed list, statements, enrollment",
-    "/classes": "Groups, teachers and schedules",
-    "/settings": user.role === "admin" ? "School, fee, branches, staff, backup" : "Your account and theme",
-  };
+  // Everything that is not already on the tab bar, in the same groups as the desktop sidebar.
+  const onTabs = ["/", "/students", "/collect", "/sheet"];
+  const groups = navGroups(user.role === "admin", owingCount(app))
+    .map((g) => ({ ...g, items: g.items.filter((n) => !onTabs.includes(n.path)) }))
+    .filter((g) => g.items.length);
   return (
     <Page title="More">
       <div className="card who-card">
@@ -157,15 +191,21 @@ function More() {
         <div className="grow"><b>{user.name}</b><span className="muted">{user.email}</span></div>
         <Pill tone="teal">{user.role === "admin" ? "Admin" : "Staff"}</Pill>
       </div>
-      <div className="card list">
-        {items.map((n) => (
-          <a key={n.path} className="row link" href={"#" + n.path}>
-            <span className="row-icon"><Icon name={n.icon} /></span>
-            <span className="grow"><b>{n.label}</b><small>{sub[n.path]}</small></span>
-            <Icon name="next" size={18} />
-          </a>
-        ))}
-      </div>
+      {groups.map((g) => (
+        <section className="menu-group" key={g.label} aria-label={g.label}>
+          <h2 className="group-label">{g.label}</h2>
+          <div className="card list">
+            {g.items.map((n) => (
+              <a key={n.path} className="row link" href={"#" + n.path}>
+                <span className="row-icon"><Icon name={n.icon} /></span>
+                <span className="grow"><b>{n.label}</b>{n.sub && <small>{n.sub}</small>}</span>
+                {!!n.badge && <Pill tone="bad">{n.badge}</Pill>}
+                <Icon name="next" size={18} />
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
       <button type="button" className="btn block" onClick={signOut}><Icon name="logout" size={18} />Sign out</button>
       {!isCloud && <p className="test-tag center">Demo. Sample data, saved on this device only.</p>}
     </Page>

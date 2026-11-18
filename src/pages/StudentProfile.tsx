@@ -22,7 +22,7 @@ export function StudentProfile({ id }: { id: string }) {
   const setTab = (t: Tab) => { tabMemo.set(id, t); setTabState(t); };
 
   if (!s || !branchIds.includes(s.branchId)) {
-    return <Page title="Student" back="/students"><div className="card"><Empty title="Student not found">They may belong to a branch you are not viewing.</Empty></div></Page>;
+    return <Page title="Student" back="/students" parent="Students"><div className="card"><Empty title="Student not found">They may belong to a branch you are not viewing.</Empty></div></Page>;
   }
   const active = isActive(s);
   const bal = balance(db, s, now);
@@ -51,10 +51,11 @@ export function StudentProfile({ id }: { id: string }) {
     <Page
       title={s.name}
       back="/students"
+      parent="Students"
       actions={
         <>
           <a className="btn desk-only" href={`#/students/${s.id}/edit`}><Icon name="edit" size={17} />Edit</a>
-          <button type="button" className="iconbtn" aria-label="More actions" onClick={() => setMenu("menu")}><Icon name="more" /></button>
+          <button type="button" className="iconbtn" aria-label="More actions" title="More actions" onClick={() => setMenu("menu")}><Icon name="more" /></button>
         </>
       }
       footer={active && !s.waived ? <a className="btn gold grow" href={"#/collect/" + s.id}><Icon name="collect" size={18} />Collect payment</a> : undefined}

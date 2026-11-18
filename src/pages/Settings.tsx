@@ -6,16 +6,16 @@ import {
 } from "../store";
 import { Dialog, download, Empty, Field, Icon, Page, Pill, Segmented, toast, useIsMobile } from "../ui";
 
-const SECTIONS: { id: string; label: string; icon: string; sub: string; admin: boolean }[] = [
-  { id: "school", label: "School", icon: "building", sub: "Name and contact details", admin: true },
-  { id: "fee", label: "Monthly fee", icon: "coins", sub: "The flat fee and when it changes", admin: true },
-  { id: "year", label: "Academic year", icon: "calendar", sub: "First and last month, months with no fee", admin: true },
-  { id: "branches", label: "Branches", icon: "swap", sub: "Locations and receipt prefixes", admin: true },
-  { id: "staff", label: "Staff accounts", icon: "students", sub: "Who can sign in, and to which branch", admin: true },
-  { id: "receipts", label: "Receipts", icon: "receipt", sub: "Paper size and footer", admin: true },
-  { id: "data", label: "Backup and data", icon: "database", sub: "Download, restore, start clean", admin: true },
-  { id: "activity", label: "Activity log", icon: "clock", sub: "Who changed what, and when", admin: true },
-  { id: "account", label: "My account", icon: "user", sub: "Theme and sign out", admin: false },
+const SECTIONS: { id: string; label: string; icon: string; sub: string; admin: boolean; group: string }[] = [
+  { id: "school", label: "School", icon: "building", sub: "Name and contact details", admin: true, group: "School setup" },
+  { id: "fee", label: "Monthly fee", icon: "coins", sub: "The flat fee and when it changes", admin: true, group: "School setup" },
+  { id: "year", label: "Academic year", icon: "calendar", sub: "First and last month, months with no fee", admin: true, group: "School setup" },
+  { id: "branches", label: "Branches", icon: "swap", sub: "Locations and receipt prefixes", admin: true, group: "School setup" },
+  { id: "staff", label: "Staff accounts", icon: "students", sub: "Who can sign in, and to which branch", admin: true, group: "People" },
+  { id: "receipts", label: "Receipts", icon: "receipt", sub: "Paper size and footer", admin: true, group: "Records" },
+  { id: "data", label: "Backup and data", icon: "database", sub: "Download, restore, start clean", admin: true, group: "Records" },
+  { id: "activity", label: "Activity log", icon: "clock", sub: "Who changed what, and when", admin: true, group: "Records" },
+  { id: "account", label: "My account", icon: "user", sub: "Theme and sign out", admin: false, group: "You" },
 ];
 
 export function SettingsPage({ section }: { section?: string }) {
@@ -26,19 +26,20 @@ export function SettingsPage({ section }: { section?: string }) {
   const body: Record<string, ReactNode> = { school: <School />, fee: <Fee />, year: <Year />, branches: <Branches />, staff: <Staff />, receipts: <ReceiptSettings />, data: <Data />, activity: <ActivityLog />, account: <Account /> };
   const menu = (
     <nav className="card list settings-nav" aria-label="Settings sections">
-      {sections.map((s) => (
+      {sections.map((s, i) => [
+        (i === 0 || sections[i - 1].group !== s.group) && sections.length > 1 && <span className="list-label" key={"g" + s.group}>{s.group}</span>,
         <a key={s.id} className="row link" href={"#/settings/" + s.id} aria-current={current?.id === s.id ? "page" : undefined}>
           <span className="row-icon"><Icon name={s.icon} size={19} /></span>
           <span className="grow"><b>{s.label}</b><small>{s.sub}</small></span>
           <Icon name="next" size={16} />
-        </a>
-      ))}
+        </a>,
+      ])}
     </nav>
   );
   if (mobile) {
     return current
-      ? <Page title={current.label} back="/settings">{body[current.id]}</Page>
-      : <Page title="Settings" back="/more">{menu}{!admin && <p className="muted small">School settings are managed by an admin.</p>}</Page>;
+      ? <Page title={current.label} back="/settings" parent="Settings">{body[current.id]}</Page>
+      : <Page title="Settings" back="/more" parent="More">{menu}{!admin && <p className="muted small">School settings are managed by an admin.</p>}</Page>;
   }
   return (
     <Page title="Settings" wide>
