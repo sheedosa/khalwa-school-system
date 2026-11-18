@@ -40,6 +40,12 @@ export function App() {
     const t = app.session.theme;
     if (t === "system") document.documentElement.removeAttribute("data-theme");
     else document.documentElement.setAttribute("data-theme", t);
+    // Keep the phone's status bar the same colour as the page.
+    const paint = () => document.querySelector('meta[name="theme-color"]')?.setAttribute("content", getComputedStyle(document.documentElement).getPropertyValue("--paper").trim());
+    paint();
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    mq.addEventListener("change", paint);
+    return () => mq.removeEventListener("change", paint);
   }, [app.session.theme]);
 
   if (isCloud && (app.cloud.phase !== "ready" || !user)) return (<><CloudGate /><Toaster /></>);
@@ -73,8 +79,8 @@ export function App() {
       {!mobile && (
         <aside className="rail">
           <div className="brand">
-            <div className="arch"><img src={LOGO} alt="" /></div>
-            <div className="wordmark">KHALWA WITH QUR'AN<span lang="ar">خلوة مع القرآن</span></div>
+            <img className="logo-tile" src={LOGO} alt="" />
+            <div className="brand-name"><b>Khalwa with Qur'an</b><span lang="ar">خلوة مع القرآن</span></div>
           </div>
           <nav className="nav" aria-label="Main">
             {NAV.map((n, i) => (
@@ -115,8 +121,9 @@ function Login() {
   return (
     <div className="login">
       <div className="login-card">
-        <div className="arch big"><img src={LOGO} alt="Khalwa with Qur'an" /></div>
-        <div className="wordmark dark">KHALWA WITH QUR'AN<span lang="ar">خلوة مع القرآن</span></div>
+        <img className="logo-tile big" src={LOGO} alt="" />
+        <h1 className="login-title">Khalwa with Qur'an</h1>
+        <span className="login-ar" lang="ar">خلوة مع القرآن</span>
         <p className="login-lead">Student registration and monthly fees</p>
         <div className="login-list">
           <span className="login-cap">Demo: choose who to sign in as</span>

@@ -106,8 +106,8 @@ export function ReceiptPage({ id }: { id: string }) {
       <div className={"paper print-area" + (r.void ? " is-void" : "") + (db.settings.receipt.paper === "Thermal" ? " thermal" : "")}>
         <div className="paper-top">
           <img src="./logo.webp" alt="" />
+          <span className="paper-name">{school.name}</span>
           <span className="paper-ar" lang="ar">{school.nameAr}</span>
-          <span className="paper-name">{school.name.toUpperCase()}</span>
           <span className="faint small">{branchName(db, r.branchId)}{school.phone ? " · " + school.phone : ""}</span>
         </div>
         <dl className="paper-meta">

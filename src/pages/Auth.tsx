@@ -8,8 +8,9 @@ function Shell({ children, lead }: { children: ReactNode; lead: string }) {
   return (
     <div className="login">
       <div className="login-card">
-        <div className="arch big"><img src={LOGO} alt="Khalwa with Qur'an" /></div>
-        <div className="wordmark dark">KHALWA WITH QUR'AN<span lang="ar">خلوة مع القرآن</span></div>
+        <img className="logo-tile big" src={LOGO} alt="" />
+        <h1 className="login-title">Khalwa with Qur'an</h1>
+        <span className="login-ar" lang="ar">خلوة مع القرآن</span>
         <p className="login-lead">{lead}</p>
         {children}
       </div>

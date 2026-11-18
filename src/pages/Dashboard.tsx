@@ -34,34 +34,31 @@ export function Dashboard() {
 
   return (
     <Page title="Dashboard" actions={<a className="btn primary desk-only" href="#/collect"><Icon name="collect" size={18} />Collect payment</a>}>
-      <div className="month-head">
-        <h2>{monthLabel(now)}</h2>
-        <span className="muted">{hijriLabel(now)}</span>
-      </div>
-
-      <div className="stats">
-        <div className="stat hero">
-          <span className="stat-l">Collected for {MON[Number(now.slice(5)) - 1]}</span>
-          <span className="stat-v gold">{gbp(collected)}</span>
+      <section className="hero">
+        <div className="hero-main">
+          <span className="hero-l"><span>Collected for {monthLabel(now)}</span><span>{hijriLabel(now)}</span></span>
+          <span className="hero-v">{gbp(collected)}</span>
           <div className="progress"><i style={{ width: pct + "%" }} /></div>
-          <span className="stat-s">{pct}% of {gbp(expected)} expected</span>
+          <span className="hero-s">{pct}% of the {gbp(expected)} expected this month</span>
         </div>
-        <a className="stat" href="#/reports/owed">
-          <span className="stat-l">Unpaid this month</span>
-          <span className="stat-v">{unpaid.length}<small>students</small></span>
-          <span className="stat-s">{gbp(unpaid.reduce((a, s) => a + owed(db, s, now), 0))} outstanding</span>
-        </a>
-        <a className="stat" href="#/receipts">
-          <span className="stat-l">Received today</span>
-          <span className="stat-v">{gbp(todays.reduce((a, r) => a + receiptTotal(r), 0))}</span>
-          <span className="stat-s">{todays.length} receipt{todays.length === 1 ? "" : "s"}</span>
-        </a>
-        <a className="stat" href="#/students">
-          <span className="stat-l">Active students</span>
-          <span className="stat-v">{active.length}</span>
-          <span className="stat-s">{newThisMonth} new this month</span>
-        </a>
-      </div>
+        <div className="hero-side">
+          <a className="hero-stat" href="#/reports/owed">
+            <b>{unpaid.length}</b>
+            <span>unpaid</span>
+            <small>{gbp(unpaid.reduce((a, s) => a + owed(db, s, now), 0))} outstanding</small>
+          </a>
+          <a className="hero-stat" href="#/receipts">
+            <b>{gbp(todays.reduce((a, r) => a + receiptTotal(r), 0))}</b>
+            <span>taken today</span>
+            <small>{todays.length} receipt{todays.length === 1 ? "" : "s"}</small>
+          </a>
+          <a className="hero-stat" href="#/students">
+            <b>{active.length}</b>
+            <span>students</span>
+            <small>{newThisMonth} new this month</small>
+          </a>
+        </div>
+      </section>
 
       {admin && !classes.length && (
         <a className="banner" href="#/classes">
