@@ -8,7 +8,7 @@
   --teal: #035f76; --teal-deep: #024a5c; --teal-soft: #dfeef1;
   --gold: #856518; --gold-bg: #e0b653; --gold-ink: #231a02; --gold-soft: #f8efd6;
   --ok: #1f6b43; --ok-soft: #dff2e6; --warn: #8f540c; --warn-soft: #fcefd8; --bad: #b3312f; --bad-soft: #fbe5e3;
-  --hero: #035a70; --hero-fg: #ffffff; --hero-2: rgba(255, 255, 255, 0.72); --hero-line: rgba(255, 255, 255, 0.16);
+  --hero: #035a70; --hero-fg: #ffffff; --hero-2: rgba(255, 255, 255, 0.9); --hero-line: rgba(255, 255, 255, 0.16);
   --on-primary: #ffffff;
   --shadow: 0 24px 60px -24px rgba(12, 42, 49, 0.35);
   --r-group: 18px; --r-control: 12px; --r-tag: 6px;
@@ -23,7 +23,7 @@
     --teal: #5cc0d8; --teal-deep: #82d2e5; --teal-soft: #123842;
     --gold: #e3c272; --gold-bg: #ddb257; --gold-ink: #231a02; --gold-soft: #332c17;
     --ok: #72c995; --ok-soft: #123423; --warn: #e8a964; --warn-soft: #3a2a13; --bad: #ee8683; --bad-soft: #401c1b;
-    --hero: #0a4759; --hero-fg: #ffffff; --hero-2: rgba(255, 255, 255, 0.7); --hero-line: rgba(255, 255, 255, 0.14);
+    --hero: #0a4759; --hero-fg: #ffffff; --hero-2: rgba(255, 255, 255, 0.9); --hero-line: rgba(255, 255, 255, 0.14);
     --on-primary: #06191e;
     --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
     color-scheme: dark;
@@ -39,7 +39,7 @@
   --teal: #5cc0d8; --teal-deep: #82d2e5; --teal-soft: #123842;
   --gold: #e3c272; --gold-bg: #ddb257; --gold-ink: #231a02; --gold-soft: #332c17;
   --ok: #72c995; --ok-soft: #123423; --warn: #e8a964; --warn-soft: #3a2a13; --bad: #ee8683; --bad-soft: #401c1b;
-  --hero: #0a4759; --hero-fg: #ffffff; --hero-2: rgba(255, 255, 255, 0.7); --hero-line: rgba(255, 255, 255, 0.14);
+  --hero: #0a4759; --hero-fg: #ffffff; --hero-2: rgba(255, 255, 255, 0.9); --hero-line: rgba(255, 255, 255, 0.14);
   --on-primary: #06191e;
   --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.8);
   color-scheme: dark;
@@ -516,6 +516,17 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .lattice::before { opacity: 0.06; }
 .lattice::after { opacity: 0.4; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none' stroke='%23fff' stroke-width='1'%3E%3Crect x='14' y='14' width='28' height='28'/%3E%3Crect x='14' y='14' width='28' height='28' transform='rotate(45 28 28)'/%3E%3Cpath d='M28 0v8.2M28 47.8V56M0 28h8.2M47.8 28H56'/%3E%3C/svg%3E"), radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.22), transparent 55%); background-size: 56px 56px, 100% 100%; -webkit-mask-image: radial-gradient(circle 230px at var(--mx) var(--my), #000 0%, transparent 100%); mask-image: radial-gradient(circle 230px at var(--mx) var(--my), #000 0%, transparent 100%); }
 @keyframes lattice-drift { 0% { --mx: 78%; --my: 20%; } 50% { --mx: 28%; --my: 72%; } 100% { --mx: 88%; --my: 88%; } }
+/* Keep the pattern away from the words. On the month panel it gathers round the logo
+   (top right) and fades out before the figures; the moving glow stays on that side too. */
+.hero::before { opacity: 0.1; -webkit-mask-image: radial-gradient(ellipse 62% 105% at 100% 0%, #000 25%, transparent 100%); mask-image: radial-gradient(ellipse 62% 105% at 100% 0%, #000 25%, transparent 100%); }
+.hero::after { opacity: 0.24; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none' stroke='%23fff' stroke-width='1'%3E%3Crect x='14' y='14' width='28' height='28'/%3E%3Crect x='14' y='14' width='28' height='28' transform='rotate(45 28 28)'/%3E%3Cpath d='M28 0v8.2M28 47.8V56M0 28h8.2M47.8 28H56'/%3E%3C/svg%3E"); background-size: 56px 56px; -webkit-mask-image: radial-gradient(circle 190px at var(--mx) var(--my), #000 0%, transparent 100%); mask-image: radial-gradient(circle 190px at var(--mx) var(--my), #000 0%, transparent 100%); }
+.hero { animation-name: hero-drift; }
+@keyframes hero-drift { 0% { --mx: 92%; --my: 8%; } 50% { --mx: 74%; --my: 30%; } 100% { --mx: 96%; --my: 52%; } }
+.hero-s, .hero-stat small { font-weight: 500; }
+.hero-main, .hero-stat { text-shadow: 0 1px 2px rgba(0, 20, 26, 0.35); }
+/* On the opening screen the pattern frames the logo instead of running behind it. */
+.welcome-brand::before { opacity: 0.1; -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 48%, transparent 40%, #000 95%); mask-image: radial-gradient(ellipse 70% 60% at 50% 48%, transparent 40%, #000 95%); }
+.welcome-lead { opacity: 1; }
 @keyframes logo-in { from { opacity: 0; transform: translateY(14px) scale(0.96); } }
 
 /* ---------- opening screen ---------- */
@@ -589,7 +600,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
   .hero { grid-template-columns: minmax(0, 1fr); padding: 22px 20px 20px; border-radius: 24px; gap: 22px; }
   .hero-logo { position: absolute; top: 14px; right: 12px; height: 112px; }
   .hero-l { padding-right: 96px; }
-  .lattice::after { opacity: 0.34; }
+  .hero::after { opacity: 0.2; }
   .hero-v { font-size: 60px; }
   .hero-stat { padding-left: 12px; }
   .hero-stat:first-child { padding-left: 0; border-left: 0; }
