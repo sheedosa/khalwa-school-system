@@ -50,9 +50,12 @@ html, body, #root { height: 100%; }
 html { -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--paper); color: var(--fg); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
 h1, h2, h3, p, dl, dd { margin: 0; }
-h1, h2 { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
-h1 { font-size: 28px; }
-h2 { font-size: 18px; letter-spacing: -0.015em; }
+h1, h2 { line-height: 1.15; text-wrap: balance; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 32px; letter-spacing: -0.035em; }
+h2 { font-family: var(--body); font-weight: 650; font-size: 17px; letter-spacing: -0.012em; }
+/* Headings that name a person or a place keep the display face. */
+.profile-head h2, .pay-who h2, .statement-head h2 { font-family: var(--display); font-weight: 700; letter-spacing: -0.025em; }
+.h-count { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: var(--r-tag); background: var(--tone); color: var(--fg-2); font: 600 13px/1.5 var(--body); letter-spacing: 0; vertical-align: 2px; font-variant-numeric: tabular-nums; }
 a { color: var(--teal); text-decoration: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; touch-action: manipulation; }
@@ -106,7 +109,7 @@ b { font-weight: 600; }
 .test-tag { font-size: 12.5px; color: var(--fg-3); line-height: 1.4; }
 
 .topbar { flex: none; display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 18px 32px 8px; }
-.topbar h1 { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar h1 { padding-bottom: 2px; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar-tools { display: flex; align-items: center; gap: 10px; flex: none; }
 .toolbar-strip { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 6px 32px 12px; }
 .toolbar-strip .search { flex: 1 1 280px; max-width: 440px; }
@@ -222,13 +225,13 @@ button.chip:hover, a.chip:hover { color: var(--fg); }
 .progress i { display: block; height: 100%; background: var(--teal); border-radius: 999px; transition: width 0.3s; }
 .empty { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 40px 20px; color: var(--fg-2); }
 .empty .icon { color: var(--fg-3); margin-bottom: 8px; }
-.empty b { color: var(--fg); font-family: var(--display); font-size: 17px; font-weight: 700; }
+.empty b { color: var(--fg); font-size: 16px; font-weight: 650; }
 .count { color: var(--fg-2); font-size: 14px; font-weight: 500; padding: 0 4px; }
 
 /* ---------- groups, lists, tables ---------- */
 .card { background: var(--card); border-radius: var(--r-group); min-width: 0; }
 .card-h { display: flex; align-items: center; gap: 12px; padding: 18px 20px 8px; min-height: 60px; }
-.card-h h2 { flex: 1 1 auto; }
+.card-h h2 { flex: 1 1 auto; display: flex; align-items: center; }
 .card-h .grow h2 + span { display: block; margin-top: 2px; }
 .card-f { padding: 12px 20px 16px; }
 .card-actions { display: flex; gap: 8px; }
@@ -391,7 +394,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .sheet td:first-child a { color: var(--fg); }
 .sheet td:last-child, .sheet th:last-child { padding-right: 20px; padding-left: 12px; font-weight: 700; }
 .sheet th.now { color: var(--fg); box-shadow: inset 0 -3px 0 var(--teal); }
-.sheet tr.group td { background: var(--card); font-family: var(--display); font-weight: 700; font-size: 15px; padding: 18px 20px 6px; position: static; }
+.sheet tr.group td { background: var(--card); font-weight: 650; font-size: 15px; letter-spacing: -0.01em; padding: 18px 20px 6px; position: static; }
 .sheet tr.group span { color: var(--fg-2); font-family: var(--body); font-weight: 500; font-size: 13.5px; }
 .sheet tfoot th { position: sticky; bottom: 0; top: auto; background: var(--card); border-top: 1px solid var(--line); }
 .cell { display: block; width: 100%; height: 34px; border-radius: 8px; border: 0; font-size: 12.5px; font-weight: 700; padding: 0; }
@@ -441,7 +444,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .report-card { display: flex; align-items: flex-start; gap: 16px; padding: 22px; color: var(--fg); }
 .report-card .row-icon { margin-top: 2px; color: var(--teal); }
-.report-card b { display: block; font-family: var(--display); font-size: 19px; font-weight: 700; letter-spacing: -0.015em; margin-bottom: 2px; }
+.report-card b { display: block; font-size: 18px; font-weight: 650; letter-spacing: -0.012em; margin-bottom: 3px; }
 .report-card small { color: var(--fg-2); display: block; font-size: 14px; }
 .report-card > .icon { color: var(--fg-3); align-self: center; }
 @media (hover: hover) { .report-card:hover { box-shadow: inset 0 0 0 2px var(--teal); } }
@@ -455,7 +458,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
 .class-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .class-card header { display: flex; gap: 10px; align-items: flex-start; }
-.class-card h2 { font-size: 20px; }
+.class-card h2 { font-size: 18px; }
 .class-card .progress { margin-top: 6px; }
 .settings { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: start; max-width: 1100px; }
 .settings-nav { position: sticky; top: 0; }
@@ -473,7 +476,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .dialog { background: var(--card); border-radius: 26px; width: min(480px, 100%); max-height: min(86dvh, 780px); display: flex; flex-direction: column; box-shadow: var(--shadow); animation: pop 0.18s ease-out; }
 .dialog.wide { width: min(640px, 100%); }
 .dialog-h { display: flex; align-items: center; gap: 12px; padding: 20px 14px 10px 24px; }
-.dialog-h h2 { flex: 1; font-size: 22px; }
+.dialog-h h2 { flex: 1; font-size: 20px; }
 .dialog-b { padding: 4px 24px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
 .dialog-f { display: flex; gap: 10px; padding: 4px 24px 22px; }
 @keyframes fade { from { opacity: 0; } }
@@ -485,7 +488,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 
 /* ---------- sign in ---------- */
 .login-card { width: min(440px, 100%); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.login-title { font-size: 36px; letter-spacing: -0.03em; margin-bottom: 14px; }
+.login-title { font-size: 38px; margin-bottom: 14px; }
 .login-ar { font-size: 20px; color: var(--fg-2); }
 .login-lead { color: var(--fg-2); font-size: 17px; margin: 2px 0 20px; }
 .login-list { width: 100%; display: flex; flex-direction: column; background: var(--card); border-radius: var(--r-group); overflow: hidden; }
@@ -493,7 +496,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 .login-user { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 20px; border: 0; border-bottom: 1px solid var(--line-soft); background: none; min-height: 72px; }
 .login-user:last-child { border-bottom: 0; }
 .login-user:hover { background: var(--line-soft); }
-.login-user b { display: block; font-family: var(--display); font-size: 18px; font-weight: 700; letter-spacing: -0.015em; }
+.login-user b { display: block; font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
 .login-user small { display: block; color: var(--fg-2); font-size: 14px; }
 .login-user > .icon { color: var(--fg-3); }
 .login-note { font-size: 13.5px; color: var(--fg-2); line-height: 1.5; margin-top: 12px; }
@@ -563,9 +566,9 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
   .btn-label { display: none; }
 
   .topbar { min-height: calc(60px + env(safe-area-inset-top, 0px)); padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 4px max(20px, env(safe-area-inset-left, 0px)); gap: 8px; }
-  .topbar h1 { font-size: 28px; }
+  .topbar h1 { font-size: 31px; }
   .topbar:has(.back) { padding-left: max(12px, env(safe-area-inset-left, 0px)); }
-  .topbar:has(.back) h1 { font-size: 20px; }
+  .topbar:has(.back) h1 { font-size: 21px; font-weight: 700; letter-spacing: -0.025em; }
   .topbar-tools { gap: 8px; }
   .topbar .btn { min-height: 42px; padding: 0 14px; font-size: 14.5px; }
   .topbar .btn:has(.btn-label) { width: 42px; padding: 0; }
@@ -638,7 +641,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
   .paper { padding: 26px 22px 20px; }
   .after-receipt .btn { flex: 1 1 auto; }
   .report-card { padding: 18px; }
-  .login-title { font-size: 30px; margin-bottom: 10px; }
+  .login-title { font-size: 32px; margin-bottom: 10px; }
   .welcome { display: flex; flex-direction: column; overflow-y: auto; background: var(--hero); }
   .welcome-brand { flex: 1 0 auto; min-height: 40dvh; gap: 18px; padding: calc(30px + env(safe-area-inset-top, 0px)) 24px 52px; }
   .welcome-logo { width: min(188px, 50%); }
@@ -656,7 +659,7 @@ input.amount { font-family: var(--display); font-size: 34px; font-weight: 700; l
 }
 @media (max-width: 380px) {
   .tabbar a { font-size: 10.5px; }
-  .topbar h1 { font-size: 24px; }
+  .topbar h1 { font-size: 27px; }
   .topbar .branch-chip select { max-width: 132px; }
   .hero-v { font-size: 52px; }
 }

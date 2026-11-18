@@ -85,7 +85,7 @@ export function Dashboard() {
 
       <div className="cols">
         <section className="card">
-          <header className="card-h"><h2>Who owes</h2><a className="btn sm" href="#/reports/owed">Owed list</a></header>
+          <header className="card-h"><h2>Who owes{owing.length > 0 && <span className="h-count">{owing.length}</span>}</h2><a className="btn sm" href="#/reports/owed">Owed list</a></header>
           <div className="list">
             {owing.slice(0, 7).map(({ s, months, total }) => (
               <div className="row" key={s.id}>
@@ -145,7 +145,7 @@ export function Dashboard() {
 
           {promises.length > 0 && (
             <section className="card">
-              <header className="card-h"><h2>Promised payments</h2></header>
+              <header className="card-h"><h2>Promised payments<span className="h-count">{promises.length}</span></h2></header>
               <div className="list">
                 {promises.map(({ n, s }) => (
                   <a className="row link" key={n.id} href={"#/students/" + s!.id}>
