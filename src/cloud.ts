@@ -263,8 +263,8 @@ export function startCloud(hooks: Hooks): Backend {
         batch.set(doc(fs, "users", email), { id: email, email, name, role: "admin", branchId: null, active: true });
         batch.set(doc(fs, "meta/settings"), settings);
         batch.set(doc(fs, "meta/counters"), { student: 1001 });
-        batch.set(doc(fs, "branches/b1"), { id: "b1", name: branch || "Branch 1", address: "", prefix: "KQ1", active: true, nextReceipt: 1 });
-        batch.set(doc(fs, "branches/b2"), { id: "b2", name: "Branch 2", address: "", prefix: "KQ2", active: false, nextReceipt: 1 });
+        batch.set(doc(fs, "branches/b1"), { id: "b1", name: branch || "Manchester", address: "", prefix: "MAN", active: true, nextReceipt: 1 });
+        batch.set(doc(fs, "branches/b2"), { id: "b2", name: branch.trim().toLowerCase() === "london" ? "Manchester" : "London", address: "", prefix: branch.trim().toLowerCase() === "london" ? "MAN" : "LDN", active: false, nextReceipt: 1 });
         await batch.commit();
         hooks.setCloud({ phase: "loading" });
         await enter(user);

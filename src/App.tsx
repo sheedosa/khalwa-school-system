@@ -123,7 +123,7 @@ function Login() {
           {db.users.filter((u) => u.active).map((u) => (
             <button key={u.id} type="button" className="login-user" onClick={() => { signIn(u.id); go("/", true); }}>
               <Avatar name={u.name} />
-              <span className="grow"><b>{u.name}</b><small>{u.role === "admin" ? "Admin · sees both branches, all settings" : `Staff · ${branchName(db, u.branchId || "")} only`}</small></span>
+              <span className="grow"><b>{u.name}</b><small>{u.role === "admin" ? "Both branches. Fees, staff, settings, voiding receipts." : `${branchName(db, u.branchId || "")} only. Registers students and takes payments.`}</small></span>
               <Icon name="next" size={18} />
             </button>
           ))}

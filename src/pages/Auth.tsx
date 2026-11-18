@@ -118,7 +118,7 @@ function Setup({ email }: { email: string }) {
       <p className="login-note left">Nobody has set this system up yet. Whoever completes this step becomes its owner, <b>{email}</b>, with full admin access. Everything here can be changed later in Settings.</p>
       <form className="form one full" onSubmit={submit}>
         <Field label="Your name"><input required autoFocus value={name} onChange={(e) => setName(e.target.value)} /></Field>
-        <Field label="Name of the first branch" hint="The second branch is created switched off, ready for later."><input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="Branch 1" /></Field>
+        <Field label="Name of the first branch" hint="The other branch (London) is created switched off, ready for later."><input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder="Manchester" /></Field>
         <div className="form two">
           <Field label="Monthly fee (£)"><input required type="number" inputMode="decimal" min="0" step="any" value={fee} onChange={(e) => setFee(e.target.value)} /></Field>
           <Field label="School year starts"><input required type="month" value={start} onChange={(e) => setStart(e.target.value)} /></Field>

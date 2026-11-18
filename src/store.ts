@@ -27,7 +27,7 @@ interface AppState {
 }
 export const isCloud = CLOUD;
 
-const DB_KEY = "khalwa-db-v1";
+const DB_KEY = "khalwa-db-v2"; // v2: Manchester and London, accounts named by role
 const SESSION_KEY = "khalwa-session-v1";
 
 export function today() {
@@ -87,13 +87,13 @@ export function seed(): DB {
     lastBackup: null,
   };
   const branches: Branch[] = [
-    { id: "b1", name: "Branch 1", address: "", prefix: "KQ1", active: true, nextReceipt: 1 },
-    { id: "b2", name: "Branch 2", address: "", prefix: "KQ2", active: true, nextReceipt: 1 },
+    { id: "b1", name: "Manchester", address: "", prefix: "MAN", active: true, nextReceipt: 1 },
+    { id: "b2", name: "London", address: "", prefix: "LDN", active: true, nextReceipt: 1 },
   ];
   const users: User[] = [
-    { id: "u1", name: "Amal Ben Saad", email: "admin@example.com", role: "admin", branchId: null, active: true },
-    { id: "u2", name: "Yusuf Al-Hadi", email: "branch1@example.com", role: "staff", branchId: "b1", active: true },
-    { id: "u3", name: "Huda Al-Mismari", email: "branch2@example.com", role: "staff", branchId: "b2", active: true },
+    { id: "u1", name: "Administrator", email: "admin@example.com", role: "admin", branchId: null, active: true },
+    { id: "u2", name: "Manchester staff", email: "manchester@example.com", role: "staff", branchId: "b1", active: true },
+    { id: "u3", name: "London staff", email: "london@example.com", role: "staff", branchId: "b2", active: true },
   ];
   const classes: ClassRoom[] = [
     { id: "c1", name: "Hifz – Morning", teacher: "Sh. Abdulrahman Dukali", days: "Sat, Mon, Wed", time: "09:00–11:00", branchId: "b1", archived: false },
