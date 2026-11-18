@@ -1,4 +1,6 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
+import logoColour from "./assets/logo-colour.webp";
+import logoReverse from "./assets/logo-reverse.webp";
 import { DB, gbp, initials, MonthStatus } from "./logic";
 import { currentUser, isAdmin, setNotifier, setView, useApp } from "./store";
 
@@ -336,4 +338,96 @@ export function downloadCsv(filename: string, rows: (string | number)[][]) {
 export function AdminOnly({ children }: { children: ReactNode }) {
   useApp();
   return isAdmin() ? <>{children}</> : null;
+}
+
+/* ---------- branding ---------- */
+/** The school's logo on a transparent background. On dark or teal surfaces the arch and name turn white. */
+export function Logo({ onTeal, className = "" }: { onTeal?: boolean; className?: string }) {
+  if (onTeal) return <img className={"logo " + className} src={logoReverse} alt="Khalwa with Qur'an" draggable={false} />;
+  return (
+    <>
+      <img className={"logo only-light " + className} src={logoColour} alt="Khalwa with Qur'an" draggable={false} />
+      <img className={"logo only-dark " + className} src={logoReverse} alt="" draggable={false} />
+    </>
+  );
+}
+
+/**
+ * A teal surface with a fine star lattice. The lattice lights up under the
+ * pointer or finger, and drifts slowly by itself when nobody is touching it.
+ */
+export function Lattice({ className = "", children }: { className?: string; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const move = (e: { clientX: number; clientY: number }) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%");
+    el.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%");
+    el.classList.add("is-live");
+  };
+  const rest = () => {
+    const el = ref.current;
+    if (!el) return;
+    el.classList.remove("is-live");
+    el.style.removeProperty("--mx");
+    el.style.removeProperty("--my");
+  };
+  return (
+    <div ref={ref} className={"lattice " + className} onPointerMove={move} onPointerDown={move} onPointerLeave={rest} onPointerCancel={rest}>
+      {children}
+    </div>
+  );
+}
+
+/** Counts up to a number once, the first time it is shown. */
+const counted = new Set<string>();
+export function CountUp({ value, format, id }: { value: number; format: (n: number) => string; id: string }) {
+  const still = counted.has(id) || (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const [shown, setShown] = useState(still ? value : 0);
+  const from = useRef(shown);
+  useEffect(() => {
+    const start = from.current;
+    if (start === value) return;
+    const dur = counted.has(id) ? 350 : 900;
+    counted.add(id);
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - k, 4);
+      const v = Math.round(start + (value - start) * eased);
+      from.current = v;
+      setShown(k === 1 ? value : v);
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, id]);
+  return <>{format(shown)}</>;
+}
+
+/** The opening screen: the brand on teal, with whatever comes next on a sheet beside or below it. */
+export function BrandScreen({ title, children }: { title?: string; children: ReactNode }) {
+  useEffect(() => {
+    // Match the phone's status bar to the teal while this screen is up.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    const css = getComputedStyle(document.documentElement);
+    meta?.setAttribute("content", css.getPropertyValue("--hero").trim());
+    return () => meta?.setAttribute("content", css.getPropertyValue("--paper").trim());
+  }, []);
+  return (
+    <div className="welcome">
+      <Lattice className="welcome-brand">
+        <Logo onTeal className="welcome-logo" />
+        <p className="welcome-lead">Student registration and monthly fees</p>
+      </Lattice>
+      <div className="welcome-sheet">
+        <div className="login-card">
+          {title && <h1 className="login-title">{title}</h1>}
+          {children}
+        </div>
+      </div>
+    </div>
+  );
 }

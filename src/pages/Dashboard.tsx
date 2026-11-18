@@ -1,7 +1,7 @@
 import { balance, charge, dateLabel, gbp, hijriLabel, isActive, monthLabel, MON, owed, owingMonths, paid, receiptTotal, yearMonths } from "../logic";
 import { useScope } from "../scope";
 import { isCloud, branchName, className, userName } from "../store";
-import { Avatar, Empty, go, Icon, Money, Page, Pill } from "../ui";
+import { Avatar, CountUp, Empty, go, Icon, Lattice, Logo, Money, Page, Pill } from "../ui";
 
 export function Dashboard() {
   const { db, classes, students, receipts, now, today, cur, admin, multi, branchIds } = useScope();
@@ -34,10 +34,11 @@ export function Dashboard() {
 
   return (
     <Page title="Dashboard" actions={<a className="btn primary desk-only" href="#/collect"><Icon name="collect" size={18} />Collect payment</a>}>
-      <section className="hero">
+      <Lattice className="hero">
+        <Logo onTeal className="hero-logo" />
         <div className="hero-main">
-          <span className="hero-l"><span>Collected for {monthLabel(now)}</span><span>{hijriLabel(now)}</span></span>
-          <span className="hero-v">{gbp(collected)}</span>
+          <span className="hero-l"><span>Collected for {monthLabel(now).split(" ")[0]}</span><span>{hijriLabel(now)}</span></span>
+          <span className="hero-v"><CountUp id="collected" value={collected} format={gbp} /></span>
           <div className="progress"><i style={{ width: pct + "%" }} /></div>
           <span className="hero-s">{pct}% of the {gbp(expected)} expected this month</span>
         </div>
@@ -58,7 +59,7 @@ export function Dashboard() {
             <small>{newThisMonth} new this month</small>
           </a>
         </div>
-      </section>
+      </Lattice>
 
       {admin && !classes.length && (
         <a className="banner" href="#/classes">

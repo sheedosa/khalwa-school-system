@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { currentUser, isCloud, resetSample, signIn, signOut, storageWorking, useApp } from "./store";
 import { CloudGate } from "./pages/Auth";
 import { branchName } from "./store";
-import { Avatar, go, Icon, Page, Pill, toast, Toaster, useIsMobile, usePath } from "./ui";
+import { Avatar, BrandScreen, go, Icon, Logo, Page, Pill, toast, Toaster, useIsMobile, usePath } from "./ui";
 import { Dashboard } from "./pages/Dashboard";
 import { Students } from "./pages/Students";
 import { StudentProfile } from "./pages/StudentProfile";
@@ -79,7 +79,7 @@ export function App() {
       {!mobile && (
         <aside className="rail">
           <div className="brand">
-            <img className="logo-tile" src={LOGO} alt="" />
+            <Logo className="brand-logo" />
             <div className="brand-name"><b>Khalwa with Qur'an</b><span lang="ar">خلوة مع القرآن</span></div>
           </div>
           <nav className="nav" aria-label="Main">
@@ -119,12 +119,7 @@ export function App() {
 function Login() {
   const { db } = useApp();
   return (
-    <div className="login">
-      <div className="login-card">
-        <img className="logo-tile big" src={LOGO} alt="" />
-        <h1 className="login-title">Khalwa with Qur'an</h1>
-        <span className="login-ar" lang="ar">خلوة مع القرآن</span>
-        <p className="login-lead">Student registration and monthly fees</p>
+    <BrandScreen title="Welcome">
         <div className="login-list">
           <span className="login-cap">Demo: choose who to sign in as</span>
           {db.users.filter((u) => u.active).map((u) => (
@@ -141,8 +136,7 @@ function Login() {
         </p>
         <button type="button" className="btn ghost sm" onClick={() => { resetSample(); toast("Demo reset to the sample data"); }}>Reset the demo</button>
         {!storageWorking() && <p className="login-note warn">This browser is blocking storage, so changes will be lost when the page closes.</p>}
-      </div>
-    </div>
+    </BrandScreen>
   );
 }
 

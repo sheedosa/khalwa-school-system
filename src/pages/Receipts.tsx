@@ -2,7 +2,7 @@ import { useState } from "react";
 import { dateLabel, gbp, hijriLabel, monthLabel, receiptTotal, Receipt, ymOf } from "../logic";
 import { useScope } from "../scope";
 import { branchName, className, userName, voidReceipt } from "../store";
-import { Dialog, Empty, Field, go, Icon, Money, Page, Pill, SearchInput, toast, useIsMobile } from "../ui";
+import { Logo, Dialog, Empty, Field, go, Icon, Money, Page, Pill, SearchInput, toast, useIsMobile } from "../ui";
 
 const memo = { q: "", month: "", method: "" };
 
@@ -105,7 +105,7 @@ export function ReceiptPage({ id }: { id: string }) {
       {r.void && <div className="banner bad static"><Icon name="alert" /><span className="grow"><b>This receipt was voided</b><small>{userName(db, r.void.by)} on {dateLabel(r.void.at)}: {r.void.reason}</small></span></div>}
       <div className={"paper print-area" + (r.void ? " is-void" : "") + (db.settings.receipt.paper === "Thermal" ? " thermal" : "")}>
         <div className="paper-top">
-          <img src="./logo.webp" alt="" />
+          <Logo />
           <span className="paper-name">{school.name}</span>
           <span className="paper-ar" lang="ar">{school.nameAr}</span>
           <span className="faint small">{branchName(db, r.branchId)}{school.phone ? " · " + school.phone : ""}</span>

@@ -1,21 +1,10 @@
 import { FormEvent, ReactNode, useState } from "react";
 import { cloudAuth, defaultYear, signOut, useApp } from "../store";
-import { Field, Icon, Segmented, toast } from "../ui";
+import { BrandScreen, Field, Icon, Segmented, toast } from "../ui";
 
-const LOGO = "./logo.webp";
 
 function Shell({ children, lead }: { children: ReactNode; lead: string }) {
-  return (
-    <div className="login">
-      <div className="login-card">
-        <img className="logo-tile big" src={LOGO} alt="" />
-        <h1 className="login-title">Khalwa with Qur'an</h1>
-        <span className="login-ar" lang="ar">خلوة مع القرآن</span>
-        <p className="login-lead">{lead}</p>
-        {children}
-      </div>
-    </div>
-  );
+  return <BrandScreen title={lead}>{children}</BrandScreen>;
 }
 
 /** Everything a person sees before they are inside the system. */
@@ -56,7 +45,7 @@ function SignIn() {
     else toast("Password reset email sent");
   };
   return (
-    <Shell lead="Student registration and monthly fees">
+    <Shell lead="Sign in">
       <form className="form one full" onSubmit={submit}>
         <Segmented value={mode} onChange={(m) => { setMode(m); setError(""); }} options={[{ value: "in", label: "Sign in" }, { value: "new", label: "First time here" }]} />
         <Field label="Email"><input type="email" required autoComplete="username" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} /></Field>
