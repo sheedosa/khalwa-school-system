@@ -1,6 +1,6 @@
 import { balance, charge, dateLabel, gbp, hijriLabel, isActive, monthLabel, MON, owed, owingMonths, paid, receiptTotal, yearMonths } from "../logic";
 import { useScope } from "../scope";
-import { branchName, className, userName } from "../store";
+import { isCloud, branchName, className, userName } from "../store";
 import { Avatar, Empty, go, Icon, Money, Page, Pill } from "../ui";
 
 export function Dashboard() {
@@ -77,7 +77,7 @@ export function Dashboard() {
           <Icon name="next" size={18} />
         </a>
       )}
-      {backupDue && students.length > 0 && (
+      {isCloud && backupDue && students.length > 0 && (
         <a className="banner" href="#/settings/data">
           <Icon name="database" />
           <span className="grow"><b>Download a backup</b><small>{db.settings.lastBackup ? "The last one is more than a month old." : "No backup has been saved yet."}</small></span>

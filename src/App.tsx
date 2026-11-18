@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { currentUser, isCloud, signIn, signOut, storageWorking, useApp } from "./store";
+import { currentUser, isCloud, resetSample, signIn, signOut, storageWorking, useApp } from "./store";
 import { CloudGate } from "./pages/Auth";
 import { branchName } from "./store";
-import { Avatar, go, Icon, Page, Pill, Toaster, useIsMobile, usePath } from "./ui";
+import { Avatar, go, Icon, Page, Pill, toast, Toaster, useIsMobile, usePath } from "./ui";
 import { Dashboard } from "./pages/Dashboard";
 import { Students } from "./pages/Students";
 import { StudentProfile } from "./pages/StudentProfile";
@@ -91,7 +91,7 @@ export function App() {
               <div><b>{user.name}</b><span>{user.role === "admin" ? "Admin" : "Staff, " + branchName(app.db, user.branchId || "")}</span></div>
             </div>
             <button type="button" className="rail-out" onClick={signOut}><Icon name="logout" size={16} />Sign out</button>
-            {!isCloud && <p className="test-tag">Test version. Data is saved on this device only.</p>}
+            {!isCloud && <p className="test-tag">Demo. Sample data, saved on this device only.</p>}
           </div>
         </aside>
       )}
@@ -119,7 +119,7 @@ function Login() {
         <div className="wordmark dark">KHALWA WITH QUR'AN<span lang="ar">خلوة مع القرآن</span></div>
         <p className="login-lead">Student registration and monthly fees</p>
         <div className="login-list">
-          <span className="login-cap">Sign in as a sample account</span>
+          <span className="login-cap">Demo: choose who to sign in as</span>
           {db.users.filter((u) => u.active).map((u) => (
             <button key={u.id} type="button" className="login-user" onClick={() => { signIn(u.id); go("/", true); }}>
               <Avatar name={u.name} />
@@ -129,9 +129,10 @@ function Login() {
           ))}
         </div>
         <p className="login-note">
-          This is a test version with sample students. Anything you add is saved in this browser only.
-          Email and password sign-in is added when the system goes live.
+          This demo uses sample students. Anything you add stays in this browser only.
+          The live system signs in with email and password.
         </p>
+        <button type="button" className="btn ghost sm" onClick={() => { resetSample(); toast("Demo reset to the sample data"); }}>Reset the demo</button>
         {!storageWorking() && <p className="login-note warn">This browser is blocking storage, so changes will be lost when the page closes.</p>}
       </div>
     </div>
@@ -165,7 +166,7 @@ function More() {
         ))}
       </div>
       <button type="button" className="btn block" onClick={signOut}><Icon name="logout" size={18} />Sign out</button>
-      {!isCloud && <p className="test-tag center">Test version. Data is saved on this device only.</p>}
+      {!isCloud && <p className="test-tag center">Demo. Sample data, saved on this device only.</p>}
     </Page>
   );
 }

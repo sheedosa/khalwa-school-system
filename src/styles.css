@@ -341,7 +341,7 @@ input.amount { font-size: 24px; font-weight: 600; height: 54px; font-variant-num
 /* ---------- monthly sheet ---------- */
 .sheet-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--fg-2); flex: 1 1 auto; }
 .sheet-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.sheet-legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+.sheet-legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 55%, transparent); }
 .sheet { overflow: auto; max-height: calc(100dvh - 190px); }
 .sheet table { min-width: 900px; border-collapse: separate; border-spacing: 0; }
 .sheet th { position: sticky; top: 0; background: var(--card); z-index: 2; text-align: center; padding: 9px 4px; }
