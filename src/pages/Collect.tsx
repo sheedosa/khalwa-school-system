@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { allocate, balance, chargeMonths, dateLabel, fmt, hijriLabel, isActive, Method, monthLabel, monthStatus, owed, owingMonths, paid } from "../logic";
+import { allocate, balance, chargeMonths, dateLabel, gbp, hijriLabel, isActive, Method, monthLabel, monthStatus, owed, owingMonths, paid } from "../logic";
 import { useScope } from "../scope";
 import { branchName, className, recordPayment, today } from "../store";
 import { Avatar, Dialog, Empty, Field, go, Icon, Money, Page, searchStudents, SearchInput, Segmented, StatusPill, toast, useIsMobile } from "../ui";
@@ -81,7 +81,7 @@ function Pay({ id }: { id: string }) {
       back="/collect"
       footer={options.length && !s.waived ? (
         <button type="button" className="btn gold grow" disabled={!valid} onClick={() => setConfirm(true)}>
-          Review payment{valid ? <> · {fmt(amount)} {cur}</> : null}
+          Review payment{valid ? <> · {gbp(amount)}</> : null}
         </button>
       ) : undefined}
     >
@@ -107,8 +107,8 @@ function Pay({ id }: { id: string }) {
                   <label key={m} className={"row check" + (on ? " on" : "")}>
                     <input type="checkbox" checked={on} onChange={() => toggle(m)} />
                     <span className="tick"><Icon name="check" size={15} /></span>
-                    <span className="grow"><b>{monthLabel(m)}</b><small>{hijriLabel(m)}{part > 0 ? ` · ${fmt(part)} already paid` : ""}{m > now ? " · in advance" : ""}</small></span>
-                    <Money n={owed(db, s, m)} cur={false} />
+                    <span className="grow"><b>{monthLabel(m)}</b><small>{hijriLabel(m)}{part > 0 ? ` · ${gbp(part)} already paid` : ""}{m > now ? " · in advance" : ""}</small></span>
+                    <Money n={owed(db, s, m)} />
                   </label>
                 );
               })}
@@ -119,7 +119,7 @@ function Pay({ id }: { id: string }) {
             <h2>Payment</h2>
             <div className="form one">
               <Field label="Method"><Segmented value={method} onChange={setMethod} options={[{ value: "Cash", label: "Cash" }, { value: "Bank transfer", label: "Bank transfer" }]} /></Field>
-              <Field label={`Amount received (${cur})`} hint={over ? <span className="err">More than the selected months. Tick another month for the extra.</span> : amount > 0 && amount < sum ? "Part payment. Applied to the earliest month first." : undefined}>
+              <Field label={`Amount received (£)`} hint={over ? <span className="err">More than the selected months. Tick another month for the extra.</span> : amount > 0 && amount < sum ? "Part payment. Applied to the earliest month first." : undefined}>
                 <input className={"amount" + (over ? " invalid" : "")} type="number" inputMode="decimal" min="0" step="any" value={custom === null ? (sum || "") : custom} onChange={(e) => setCustom(e.target.value)} />
               </Field>
               <div className="form two dates">
@@ -136,7 +136,7 @@ function Pay({ id }: { id: string }) {
         footer={<><button type="button" className="btn" onClick={() => setConfirm(false)}>Go back</button><button type="button" className="btn gold grow" onClick={submit}><Icon name="check" size={18} />Record and issue receipt</button></>}>
         <dl className="kv confirm">
           <dt>Student</dt><dd><b>{s.name}</b><small>{s.no}</small></dd>
-          <dt>For</dt><dd>{lines.map((l) => <span className="line" key={l.month}>{monthLabel(l.month)}<Money n={l.amount} cur={false} /></span>)}</dd>
+          <dt>For</dt><dd>{lines.map((l) => <span className="line" key={l.month}>{monthLabel(l.month)}<Money n={l.amount} /></span>)}</dd>
           <dt>Method</dt><dd>{method}</dd>
           <dt>Date</dt><dd>{dateLabel(date)}</dd>
           <dt>Received by</dt><dd>{user.name}</dd>

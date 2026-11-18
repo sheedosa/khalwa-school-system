@@ -1,4 +1,4 @@
-import { balance, charge, dateLabel, fmt, hijriLabel, isActive, monthLabel, MON, owed, owingMonths, paid, receiptTotal, yearMonths } from "../logic";
+import { balance, charge, dateLabel, gbp, hijriLabel, isActive, monthLabel, MON, owed, owingMonths, paid, receiptTotal, yearMonths } from "../logic";
 import { useScope } from "../scope";
 import { branchName, className, userName } from "../store";
 import { Avatar, Empty, go, Icon, Money, Page, Pill } from "../ui";
@@ -42,18 +42,18 @@ export function Dashboard() {
       <div className="stats">
         <div className="stat hero">
           <span className="stat-l">Collected for {MON[Number(now.slice(5)) - 1]}</span>
-          <span className="stat-v gold">{fmt(collected)}<small>{cur}</small></span>
+          <span className="stat-v gold">{gbp(collected)}</span>
           <div className="progress"><i style={{ width: pct + "%" }} /></div>
-          <span className="stat-s">{pct}% of {fmt(expected)} expected</span>
+          <span className="stat-s">{pct}% of {gbp(expected)} expected</span>
         </div>
         <a className="stat" href="#/reports/owed">
           <span className="stat-l">Unpaid this month</span>
           <span className="stat-v">{unpaid.length}<small>students</small></span>
-          <span className="stat-s">{fmt(unpaid.reduce((a, s) => a + owed(db, s, now), 0))} {cur} outstanding</span>
+          <span className="stat-s">{gbp(unpaid.reduce((a, s) => a + owed(db, s, now), 0))} outstanding</span>
         </a>
         <a className="stat" href="#/receipts">
           <span className="stat-l">Received today</span>
-          <span className="stat-v">{fmt(todays.reduce((a, r) => a + receiptTotal(r), 0))}<small>{cur}</small></span>
+          <span className="stat-v">{gbp(todays.reduce((a, r) => a + receiptTotal(r), 0))}</span>
           <span className="stat-s">{todays.length} receipt{todays.length === 1 ? "" : "s"}</span>
         </a>
         <a className="stat" href="#/students">
@@ -98,10 +98,10 @@ export function Dashboard() {
             <header className="card-h"><h2>Collection by month</h2><span className="legend"><i className="k got" />Paid<i className="k exp" />Expected</span></header>
             <div className="bars">
               {bars.map((b) => (
-                <div className="bar" key={b.m} title={`${monthLabel(b.m)}: ${fmt(b.got)} of ${fmt(b.exp)} ${cur}`}>
+                <div className="bar" key={b.m} title={`${monthLabel(b.m)}: ${gbp(b.got)} of ${gbp(b.exp)}`}>
                   <div className="bar-track"><i className="exp" style={{ height: (b.exp / max) * 100 + "%" }} /><i className="got" style={{ height: (b.got / max) * 100 + "%" }} /></div>
                   <b>{MON[Number(b.m.slice(5)) - 1]}</b>
-                  <small>{fmt(b.got)}</small>
+                  <small>{gbp(b.got)}</small>
                 </div>
               ))}
             </div>

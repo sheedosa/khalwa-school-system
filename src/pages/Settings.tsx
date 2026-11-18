@@ -1,5 +1,5 @@
 import { FormEvent, ReactNode, useRef, useState } from "react";
-import { addMonths, Branch, dateLabel, feeFor, fmt, monthLabel, monthsBetween, Role, User } from "../logic";
+import { addMonths, Branch, dateLabel, feeFor, gbp, monthLabel, monthsBetween, Role, User } from "../logic";
 import { useScope } from "../scope";
 import {
   branchName, clearRecords, exportBackup, importBackup, removeFee, resetSample, saveBranch, saveReceiptSettings, saveSchool, saveUser, saveYear, setFee, setTheme, signOut, startNextYear, today, useApp, userName,
@@ -7,7 +7,7 @@ import {
 import { Dialog, download, Empty, Field, Icon, Page, Pill, Segmented, toast, useIsMobile } from "../ui";
 
 const SECTIONS: { id: string; label: string; icon: string; sub: string; admin: boolean }[] = [
-  { id: "school", label: "School", icon: "building", sub: "Name, contact details, currency", admin: true },
+  { id: "school", label: "School", icon: "building", sub: "Name and contact details", admin: true },
   { id: "fee", label: "Monthly fee", icon: "coins", sub: "The flat fee and when it changes", admin: true },
   { id: "year", label: "Academic year", icon: "calendar", sub: "First and last month, months with no fee", admin: true },
   { id: "branches", label: "Branches", icon: "swap", sub: "Locations and receipt prefixes", admin: true },
@@ -62,14 +62,13 @@ function Card({ title, sub, children, action }: { title: string; sub?: string; c
 function School() {
   const { db } = useScope();
   const [v, setV] = useState(db.settings.school);
-  const submit = (e: FormEvent) => { e.preventDefault(); saveSchool({ ...v, currency: v.currency.trim() || "LYD" }); toast("School details saved"); };
+  const submit = (e: FormEvent) => { e.preventDefault(); saveSchool({ ...v, currency: "GBP" }); toast("School details saved"); };
   return (
     <Card title="School" sub="Shown on receipts and reports">
       <form className="form pad" onSubmit={submit}>
         <Field label="Name"><input required value={v.name} onChange={(e) => setV({ ...v, name: e.target.value })} /></Field>
         <Field label="Name in Arabic"><input dir="rtl" lang="ar" value={v.nameAr} onChange={(e) => setV({ ...v, nameAr: e.target.value })} /></Field>
-        <Field label="Phone"><input type="tel" value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} /></Field>
-        <Field label="Currency"><input value={v.currency} maxLength={6} onChange={(e) => setV({ ...v, currency: e.target.value })} /></Field>
+        <Field label="Phone"><input type="tel" placeholder="020 xxxx xxxx" value={v.phone} onChange={(e) => setV({ ...v, phone: e.target.value })} /></Field>
         <Field label="Address" wide><input value={v.address} onChange={(e) => setV({ ...v, address: e.target.value })} /></Field>
         <div className="form-end wide"><button className="btn primary" type="submit">Save</button></div>
       </form>
@@ -87,15 +86,15 @@ function Fee() {
     const n = Number(amount);
     if (!(n >= 0) || amount === "" || !from) return;
     setFee(from, n);
-    toast(`Fee is ${fmt(n)} ${cur} from ${monthLabel(from)}`);
+    toast(`Fee is ${gbp(n)} from ${monthLabel(from)}`);
     setAmount("");
   };
   return (
     <>
       <Card title="Monthly fee" sub="One flat fee for every student">
-        <div className="fee-now"><span className="muted">Fee for {monthLabel(now)}</span><b className="gold">{fmt(feeFor(db.settings, now))} <small>{cur}</small></b></div>
+        <div className="fee-now"><span className="muted">Fee for {monthLabel(now)}</span><b className="gold">{gbp(feeFor(db.settings, now))}</b></div>
         <form className="form pad" onSubmit={submit}>
-          <Field label={`New amount (${cur})`}><input type="number" inputMode="decimal" min="0" step="any" required value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
+          <Field label={`New amount (£)`}><input type="number" inputMode="decimal" min="0" step="any" required value={amount} onChange={(e) => setAmount(e.target.value)} /></Field>
           <Field label="Applies from" hint="Earlier months keep the amount they had"><input type="month" required value={from} onChange={(e) => setFrom(e.target.value)} /></Field>
           <div className="form-end wide"><button className="btn primary" type="submit">Set fee</button></div>
         </form>
@@ -104,7 +103,7 @@ function Fee() {
         <div className="list">
           {fees.map((f) => (
             <div className="row" key={f.from}>
-              <span className="grow"><b>{fmt(f.amount)} {cur}</b><small>from {monthLabel(f.from)}{f.from > now ? " (upcoming)" : ""}</small></span>
+              <span className="grow"><b>{gbp(f.amount)}</b><small>from {monthLabel(f.from)}{f.from > now ? " (upcoming)" : ""}</small></span>
               {fees.length > 1 && <button type="button" className="btn sm ghost" onClick={() => { removeFee(f.from); toast("Fee change removed"); }}>Remove</button>}
             </div>
           ))}
@@ -125,7 +124,7 @@ function Year() {
   const dirty = start !== y.start || end !== y.end || noFee.join() !== y.noFee.join();
   return (
     <>
-      <Card title="Academic year" sub="Fees are charged for each month in this range">
+      <Card title="Academic year" sub="Fees are charged in pounds for each month in this range">
         <div className="form pad">
           <Field label="First month"><input type="month" value={start} onChange={(e) => setStart(e.target.value)} /></Field>
           <Field label="Last month"><input type="month" value={end} min={start} onChange={(e) => setEnd(e.target.value)} /></Field>

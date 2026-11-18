@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { DB, fmt, initials, MonthStatus } from "./logic";
-import { currentUser, getState, isAdmin, setView, useApp } from "./store";
+import { DB, gbp, initials, MonthStatus } from "./logic";
+import { currentUser, isAdmin, setView, useApp } from "./store";
 
 /* ---------- router (hash based, so it works on any static host) ---------- */
 let wasPop = false;
@@ -90,14 +90,8 @@ export function Icon({ name, size = 20 }: { name: string; size?: number }) {
 }
 
 /* ---------- small pieces ---------- */
-export function Money({ n, cur = true }: { n: number; cur?: boolean }) {
-  const currency = getState().db.settings.school.currency;
-  return (
-    <span className="money">
-      {fmt(n)}
-      {cur && <small> {currency}</small>}
-    </span>
-  );
+export function Money({ n }: { n: number }) {
+  return <span className="money">{gbp(n)}</span>;
 }
 export function Pill({ tone, children }: { tone: "ok" | "warn" | "bad" | "teal" | "off" | "gold"; children: ReactNode }) {
   return <span className={"pill " + tone}>{children}</span>;

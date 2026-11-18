@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allocate, balance, charge, DB, feeFor, monthStatus, monthsBetween, owed, owingMonths, Receipt, Student } from "./logic";
+import { allocate, balance, charge, DB, feeFor, gbp, monthStatus, monthsBetween, owed, owingMonths, Receipt, Student } from "./logic";
 
 function student(over: Partial<Student> = {}): Student {
   return {
@@ -17,7 +17,7 @@ function db(receipts: Receipt[] = [], over: Partial<DB["settings"]> = {}): DB {
   return {
     version: 1,
     settings: {
-      school: { name: "", nameAr: "", address: "", phone: "", currency: "LYD" },
+      school: { name: "", nameAr: "", address: "", phone: "", currency: "GBP" },
       fees: [{ from: "2026-09", amount: 60 }],
       year: { start: "2026-09", end: "2027-06", noFee: [] },
       receipt: { footer: "", paper: "A5" },
@@ -111,5 +111,14 @@ describe("earlier academic years", () => {
     // May and June 2027 from the old year, September 2027 from the new one. July and August are outside both.
     expect(owingMonths(d, s, "2027-09")).toEqual(["2027-05", "2027-06", "2027-09"]);
     expect(balance(d, s, "2027-09")).toBe(180);
+  });
+});
+
+describe("money", () => {
+  it("shows pounds, with pence only when there are some", () => {
+    expect(gbp(30)).toBe("£30");
+    expect(gbp(1680)).toBe("£1,680");
+    expect(gbp(12.5)).toBe("£12.50");
+    expect(gbp(0)).toBe("£0");
   });
 });

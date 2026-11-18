@@ -3,7 +3,7 @@
 // moving to Firebase later means replacing this file, not the screens.
 import { useSyncExternalStore } from "react";
 import {
-  Activity, addMonths, allocate, Branch, ClassRoom, DB, isoDate, Method, monthsBetween, Note, pad, Receipt, receiptTotal, Role, Settings, Student, User, ymOf, fmt, monthLabel,
+  Activity, addMonths, allocate, Branch, ClassRoom, DB, isoDate, Method, monthsBetween, Note, pad, Receipt, receiptTotal, Role, Settings, Student, User, ymOf, gbp, monthLabel,
 } from "./logic";
 
 export interface Session {
@@ -52,8 +52,8 @@ export function seed(): DB {
   const todayIso = today();
 
   const settings: Settings = {
-    school: { name: "Khalwa with Qur'an", nameAr: "خلوة مع القرآن", address: "", phone: "", currency: "LYD" },
-    fees: [{ from: yStart, amount: 60 }],
+    school: { name: "Khalwa with Qur'an", nameAr: "خلوة مع القرآن", address: "", phone: "", currency: "GBP" },
+    fees: [{ from: yStart, amount: 30 }],
     year: { start: yStart, end: yEnd, noFee: [] },
     receipt: { footer: "جزاكم الله خيراً", paper: "A5" },
     lastBackup: null,
@@ -92,7 +92,7 @@ export function seed(): DB {
       const s: Student = {
         id: "s" + seq, no: "KQ-" + seq, name: `${fn} ${ln}`, nameAr: `${fnAr} ${lnAr}`, gender: girl ? "F" : "M",
         dob: `${startYear - 6 - Math.floor(r() * 9)}-${pad(1 + Math.floor(r() * 12))}-${pad(1 + Math.floor(r() * 28))}`,
-        guardian: `${father} ${ln}`, phone: "09" + (1 + Math.floor(r() * 2)) + " " + String(1000000 + Math.floor(r() * 8999999)), phone2: "",
+        guardian: `${father} ${ln}`, phone: "07" + String(400 + Math.floor(r() * 580)) + " " + String(100000 + Math.floor(r() * 899999)), phone2: "",
         branchId, classId: classIds[i % classIds.length], start: `${startMonth}-${pad(1 + Math.floor(r() * 10))}`,
         leftDate: null, waived: false, waiveReason: "", exempt: [], createdAt: `${startMonth}-01`,
       };
@@ -111,7 +111,7 @@ export function seed(): DB {
   }
 
   // Payments
-  const fee = 60;
+  const fee = 30;
   type Raw = Omit<Receipt, "no">;
   const raw: Raw[] = [];
   const dayNow = Number(todayIso.slice(8));
@@ -165,7 +165,10 @@ function loadDB(): DB {
     const raw = localStorage.getItem(DB_KEY);
     if (raw) {
       const d = JSON.parse(raw) as DB;
-      if (d && d.version === 1 && Array.isArray(d.students)) return d;
+      if (d && d.version === 1 && Array.isArray(d.students)) {
+        d.settings.school.currency = "GBP"; // the school is in the UK; older test data said LYD
+        return d;
+      }
     }
   } catch {
     /* fall through to sample data */
@@ -343,7 +346,7 @@ export function recordPayment(p: { studentId: string; months: string[]; amount: 
       db.receipts.push({ id, no, studentId: s.id, branchId: s.branchId, date: p.date, method: p.method, by: state.session.userId || "", note: p.note, lines, void: null });
     },
     "Recorded payment",
-    `${s.name}, ${fmt(lines.reduce((a, l) => a + l.amount, 0))} ${state.db.settings.school.currency}`,
+    `${s.name}, ${gbp(lines.reduce((a, l) => a + l.amount, 0))}`,
   );
   return id;
 }
@@ -352,7 +355,7 @@ export function voidReceipt(id: string, reason: string) {
   commit((db) => {
     const x = db.receipts.find((x) => x.id === id);
     if (x && !x.void) x.void = { by: state.session.userId || "", at: new Date().toISOString(), reason };
-  }, "Voided receipt", `${r?.no} (${r ? fmt(receiptTotal(r)) : ""}): ${reason}`);
+  }, "Voided receipt", `${r?.no} (${r ? gbp(receiptTotal(r)) : ""}): ${reason}`);
 }
 
 /* ---------- notes ---------- */
@@ -398,7 +401,7 @@ export function saveSchool(school: Settings["school"]) {
 export function setFee(from: string, amount: number) {
   commit((db) => {
     db.settings.fees = [...db.settings.fees.filter((f) => f.from !== from), { from, amount }].sort((a, b) => (a.from < b.from ? -1 : 1));
-  }, "Changed monthly fee", `${fmt(amount)} from ${monthLabel(from)}`);
+  }, "Changed monthly fee", `${gbp(amount)} from ${monthLabel(from)}`);
 }
 export function removeFee(from: string) {
   commit((db) => {
@@ -454,6 +457,7 @@ export function importBackup(text: string): string | null {
   try {
     const d = JSON.parse(text) as DB;
     if (!d || d.version !== 1 || !Array.isArray(d.students) || !Array.isArray(d.receipts) || !d.settings) return "This file is not a Khalwa backup.";
+    d.settings.school.currency = "GBP";
     const keep = state.session.userId;
     state = { db: d, session: { ...state.session, userId: d.users.some((u) => u.id === keep) ? keep : null } };
     emit();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { dateLabel, fmt, hijriLabel, monthLabel, receiptTotal, Receipt, ymOf } from "../logic";
+import { dateLabel, gbp, hijriLabel, monthLabel, receiptTotal, Receipt, ymOf } from "../logic";
 import { useScope } from "../scope";
 import { branchName, className, userName, voidReceipt } from "../store";
 import { Dialog, Empty, Field, go, Icon, Money, Page, Pill, SearchInput, toast, useIsMobile } from "../ui";
@@ -36,7 +36,7 @@ export function Receipts() {
           </div>
         </>
       }>
-      <p className="count">{list.length} receipt{list.length === 1 ? "" : "s"} · {fmt(total)} {cur}</p>
+      <p className="count">{list.length} receipt{list.length === 1 ? "" : "s"} · {gbp(total)}</p>
       {!list.length ? <div className="card"><Empty title="No receipts match" icon="receipt" /></div> : mobile ? (
         <div className="card list">
           {shown.map((r) => (
@@ -81,7 +81,7 @@ export function ReceiptPage({ id }: { id: string }) {
   const s = db.students.find((x) => x.id === r.studentId);
   const school = db.settings.school;
   const total = receiptTotal(r);
-  const text = `${school.name}\nReceipt ${r.no}\n${dateLabel(r.date)}\nStudent: ${s?.name} (${s?.no})\n${r.lines.map((l) => `${monthLabel(l.month)}: ${fmt(l.amount)} ${cur}`).join("\n")}\nTotal: ${fmt(total)} ${cur} (${r.method})\nReceived by ${userName(db, r.by)}`;
+  const text = `${school.name}\nReceipt ${r.no}\n${dateLabel(r.date)}\nStudent: ${s?.name} (${s?.no})\n${r.lines.map((l) => `${monthLabel(l.month)}: ${gbp(l.amount)}`).join("\n")}\nTotal: ${gbp(total)} (${r.method})\nReceived by ${userName(db, r.by)}`;
   const share = async () => {
     try {
       if (navigator.share) await navigator.share({ title: "Receipt " + r.no, text });
@@ -120,10 +120,10 @@ export function ReceiptPage({ id }: { id: string }) {
         </dl>
         <div className="paper-lines">
           {r.lines.map((l) => (
-            <div key={l.month}><span>Monthly fee, {monthLabel(l.month)}<small>{hijriLabel(l.month)}</small></span><b>{fmt(l.amount)}</b></div>
+            <div key={l.month}><span>Monthly fee, {monthLabel(l.month)}<small>{hijriLabel(l.month)}</small></span><b>{gbp(l.amount)}</b></div>
           ))}
         </div>
-        <div className="paper-total"><span>Total received<small>{r.method}</small></span><b>{fmt(total)} <small>{cur}</small></b></div>
+        <div className="paper-total"><span>Total received<small>{r.method}</small></span><b>{gbp(total)}</b></div>
         {r.note && <p className="paper-note">{r.note}</p>}
         <div className="paper-sign"><span>Received by<br /><b>{userName(db, r.by)}</b></span><span>Signature</span></div>
         {db.settings.receipt.footer && <p className="paper-foot" lang="ar">{db.settings.receipt.footer}</p>}
@@ -137,7 +137,7 @@ export function ReceiptPage({ id }: { id: string }) {
       <Dialog open={voiding} onClose={() => setVoiding(false)} title={"Void " + r.no}
         footer={<><button type="button" className="btn" onClick={() => setVoiding(false)}>Keep receipt</button><button type="button" className="btn danger grow" disabled={reason.trim().length < 3} onClick={() => { voidReceipt(r.id, reason.trim()); setVoiding(false); toast("Receipt voided"); }}>Void receipt</button></>}>
         <div className="form one">
-          <p>The {fmt(total)} {cur} goes back to unpaid for {s?.name}. The receipt stays in the records, marked void, and its number is not reused.</p>
+          <p>The {gbp(total)} goes back to unpaid for {s?.name}. The receipt stays in the records, marked void, and its number is not reused.</p>
           <Field label="Reason"><input autoFocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder="For example: recorded against the wrong student" /></Field>
         </div>
       </Dialog>

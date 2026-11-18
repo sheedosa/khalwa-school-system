@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { balance, charge, DB, fmt, hijriLabel, isActive, MON, monthLabel, monthStatus, MonthStatus, owed, paid, Student, yearMonths } from "../logic";
+import { balance, charge, DB, gbp, hijriLabel, isActive, MON, monthLabel, monthStatus, MonthStatus, owed, paid, Student, yearMonths } from "../logic";
 import { useScope } from "../scope";
 import { branchName, className } from "../store";
 import { Avatar, Empty, go, Icon, Money, Page, StatusPill, useIsMobile } from "../ui";
@@ -70,7 +70,7 @@ export function MonthlySheet() {
               <button type="button" key={s.id} className="row link" onClick={() => openCell(db, s, month, st)}>
                 <Avatar name={s.name} />
                 <span className="grow"><b>{s.name}</b><small>{className(db, s.classId)}{multi ? " · " + branchName(db, s.branchId) : ""}</small></span>
-                <span className="row-end"><StatusPill status={st} />{st === "partial" && <small>{fmt(p)} of {fmt(charge(db, s, month))}</small>}</span>
+                <span className="row-end"><StatusPill status={st} />{st === "partial" && <small>{gbp(p)} of {gbp(charge(db, s, month))}</small>}</span>
               </button>
             );
           })}
@@ -107,23 +107,23 @@ export function MonthlySheet() {
                     <td><a href={"#/students/" + s.id}><b>{s.name}</b></a><small>{s.no}</small></td>
                     {months.map((m) => {
                       const st = monthStatus(db, s, m, now);
-                      const label = st === "paid" ? "✓" : st === "partial" ? fmt(paid(db, s, m)) : st === "due" ? "Due" : st === "exempt" || st === "waived" || st === "nofee" ? "–" : "";
+                      const label = st === "paid" ? "✓" : st === "partial" ? gbp(paid(db, s, m)) : st === "due" ? "Due" : st === "exempt" || st === "waived" || st === "nofee" ? "–" : "";
                       return (
                         <td key={m} className={"c" + (m === now ? " now" : "")}>
                           <button type="button" className={"cell " + st} disabled={st === "na" || st === "nofee" || st === "waived" || st === "exempt"} title={`${monthLabel(m)}: ${st === "na" ? "not enrolled" : st}`} onClick={() => openCell(db, s, m, st)}>{label}</button>
                         </td>
                       );
                     })}
-                    <td className={"r " + (bal ? "owe" : "faint")}>{fmt(bal)}</td>
+                    <td className={"r " + (bal ? "owe" : "faint")}>{gbp(bal)}</td>
                   </tr>,
                 ];
               })}
             </tbody>
             <tfoot>
               <tr>
-                <th>Collected ({cur})</th>
-                {months.map((m) => <th key={m} className="c num">{m <= now ? fmt(list.reduce((a, s) => a + paid(db, s, m), 0)) : ""}</th>)}
-                <th className="r owe">{fmt(list.reduce((a, s) => a + balance(db, s, now), 0))}</th>
+                <th>Collected</th>
+                {months.map((m) => <th key={m} className="c num">{m <= now ? gbp(list.reduce((a, s) => a + paid(db, s, m), 0)) : ""}</th>)}
+                <th className="r owe">{gbp(list.reduce((a, s) => a + balance(db, s, now), 0))}</th>
               </tr>
             </tfoot>
           </table>

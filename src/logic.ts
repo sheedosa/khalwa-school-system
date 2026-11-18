@@ -263,7 +263,14 @@ export function receiptTotal(r: Receipt) {
 }
 
 export function fmt(n: number) {
-  return new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(n);
+  return new Intl.NumberFormat("en-GB", { maximumFractionDigits: 2 }).format(n);
+}
+const GBP_WHOLE = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 });
+const GBP_PENCE = new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** Money in pounds: £30, £1,680, or £12.50 when there are pence. */
+export function gbp(n: number) {
+  const r = Math.round(n * 100) / 100;
+  return (Number.isInteger(r) ? GBP_WHOLE : GBP_PENCE).format(r);
 }
 export function initials(name: string) {
   return name

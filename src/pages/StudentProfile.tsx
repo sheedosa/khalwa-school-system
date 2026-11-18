@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { balance, dateLabel, feeFor, fmt, isActive, MON, monthLabel, monthStatus, Note, NoteType, owed, paid, receiptTotal, Student, yearMonths, ymOf } from "../logic";
+import { balance, dateLabel, feeFor, gbp, isActive, MON, monthLabel, monthStatus, Note, NoteType, owed, paid, receiptTotal, Student, yearMonths, ymOf } from "../logic";
 import { useScope } from "../scope";
 import { addNote, branchName, canDeleteNote, className, deleteNote, markLeft, today, toggleExempt, transferStudent, userName } from "../store";
 import { Avatar, Dialog, Empty, Field, go, Icon, Money, Page, Pill, Segmented, toast } from "../ui";
@@ -81,7 +81,7 @@ export function StudentProfile({ id }: { id: string }) {
       {tab === "overview" && (
         <div className="cols even">
           <section className="card">
-            <header className="card-h"><h2>This year</h2><span className="muted small">{fmt(feeFor(db.settings, now))} {cur} a month</span></header>
+            <header className="card-h"><h2>This year</h2><span className="muted small">{gbp(feeFor(db.settings, now))} a month</span></header>
             <div className="year-grid">
               {months.map((m) => {
                 const st = monthStatus(db, s, m, now);
@@ -89,7 +89,7 @@ export function StudentProfile({ id }: { id: string }) {
                 return (
                   <button key={m} type="button" className={"month " + st} onClick={() => tapMonth(m)} disabled={st === "na" || st === "nofee" || st === "waived"}>
                     <b>{MON[Number(m.slice(5)) - 1]}</b>
-                    <small>{st === "paid" ? "Paid" : st === "partial" ? `${fmt(p)} paid` : st === "due" ? "Unpaid" : st === "exempt" ? "Exempt" : st === "waived" ? "Waived" : st === "nofee" ? "No fee" : st === "future" ? "Not due" : "–"}</small>
+                    <small>{st === "paid" ? "Paid" : st === "partial" ? `${gbp(p)} paid` : st === "due" ? "Unpaid" : st === "exempt" ? "Exempt" : st === "waived" ? "Waived" : st === "nofee" ? "No fee" : st === "future" ? "Not due" : "–"}</small>
                   </button>
                 );
               })}
@@ -270,7 +270,7 @@ function LeftDialog({ s, open, onClose }: { s: Student; open: boolean; onClose: 
       footer={<><button type="button" className="btn" onClick={onClose}>Cancel</button><button type="button" className="btn danger grow" onClick={() => { markLeft(s.id, date); onClose(); toast(s.name + " marked as left"); }}>Mark as left</button></>}>
       <div className="form one">
         <p>{s.name} stays in the records with all payments and notes. No fees are charged after the month they leave.</p>
-        {bal > 0 && <p className="inline-warn"><Icon name="alert" size={18} /><span>They still owe {fmt(bal)} {db.settings.school.currency}. It stays on the owed list.</span></p>}
+        {bal > 0 && <p className="inline-warn"><Icon name="alert" size={18} /><span>They still owe {gbp(bal)}. It stays on the owed list.</span></p>}
         <Field label="Last day"><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
       </div>
     </Dialog>

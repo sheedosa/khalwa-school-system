@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { balance, charge, chargeMonths, dateLabel, fmt, hijriLabel, isActive, MON, monthLabel, monthStatus, owed, owingMonths, paid, receiptTotal, yearMonths, ymOf } from "../logic";
+import { balance, charge, chargeMonths, dateLabel, gbp, hijriLabel, isActive, MON, monthLabel, monthStatus, owed, owingMonths, paid, receiptTotal, yearMonths, ymOf } from "../logic";
 import { useScope } from "../scope";
 import { branchName, className, userName } from "../store";
 import { Avatar, downloadCsv, Empty, go, Icon, Money, Page, Pill, searchStudents, SearchInput, useIsMobile } from "../ui";
@@ -92,9 +92,9 @@ function Collection() {
     <ReportFrame title="Monthly collection" sub={monthLabel(m)} onExport={exportCsv}
       filters={<div className="chips"><select className="chip-select" aria-label="Month" value={m} onChange={(e) => setM(e.target.value)}>{[...months].reverse().map((x) => <option key={x} value={x}>{monthLabel(x)}</option>)}</select><span className="muted small">{hijriLabel(m)}</span></div>}>
       <div className="stats three">
-        <div className="stat"><span className="stat-l">Fees for {monthLabel(m, true)}</span><span className="stat-v gold">{fmt(tGot)}<small>{cur}</small></span><span className="stat-s">of {fmt(tExp)} expected ({tExp ? Math.round((tGot / tExp) * 100) : 0}%)</span></div>
-        <div className="stat"><span className="stat-l">Outstanding for {monthLabel(m, true)}</span><span className={"stat-v" + (tExp - tGot > 0 ? " owe" : "")}>{fmt(tExp - tGot)}<small>{cur}</small></span><span className="stat-s">{rows.reduce((a, r) => a + r.n - r.paidN, 0)} students not paid in full</span></div>
-        <div className="stat"><span className="stat-l">Money received in {monthLabel(m, true)}</span><span className="stat-v">{fmt(cash + bank)}<small>{cur}</small></span><span className="stat-s">Cash {fmt(cash)} · Transfer {fmt(bank)}</span></div>
+        <div className="stat"><span className="stat-l">Fees for {monthLabel(m, true)}</span><span className="stat-v gold">{gbp(tGot)}</span><span className="stat-s">of {gbp(tExp)} expected ({tExp ? Math.round((tGot / tExp) * 100) : 0}%)</span></div>
+        <div className="stat"><span className="stat-l">Outstanding for {monthLabel(m, true)}</span><span className={"stat-v" + (tExp - tGot > 0 ? " owe" : "")}>{gbp(tExp - tGot)}</span><span className="stat-s">{rows.reduce((a, r) => a + r.n - r.paidN, 0)} students not paid in full</span></div>
+        <div className="stat"><span className="stat-l">Money received in {monthLabel(m, true)}</span><span className="stat-v">{gbp(cash + bank)}</span><span className="stat-s">Cash {gbp(cash)} · Transfer {gbp(bank)}</span></div>
       </div>
       <section className="card">
         <header className="card-h"><h2>By class</h2></header>
@@ -107,13 +107,13 @@ function Collection() {
                   {multi && <td>{branchName(db, r.c.branchId)}</td>}
                   <td><b>{r.c.name}</b><small>{r.c.teacher}</small></td>
                   <td className="r">{r.n}</td><td className="r">{r.paidN}</td>
-                  <td className="r">{fmt(r.exp)}</td><td className="r">{fmt(r.got)}</td>
-                  <td className={"r" + (r.exp - r.got > 0 ? " owe" : " faint")}>{fmt(r.exp - r.got)}</td>
+                  <td className="r">{gbp(r.exp)}</td><td className="r">{gbp(r.got)}</td>
+                  <td className={"r" + (r.exp - r.got > 0 ? " owe" : " faint")}>{gbp(r.exp - r.got)}</td>
                   <td className="bar-col"><div className="progress"><i style={{ width: (r.exp ? (r.got / r.exp) * 100 : 0) + "%" }} /></div></td>
                 </tr>
               ))}
             </tbody>
-            <tfoot><tr>{multi && <th></th>}<th>Total</th><th className="r">{rows.reduce((a, r) => a + r.n, 0)}</th><th className="r">{rows.reduce((a, r) => a + r.paidN, 0)}</th><th className="r">{fmt(tExp)}</th><th className="r">{fmt(tGot)}</th><th className="r">{fmt(tExp - tGot)}</th><th className="bar-col"></th></tr></tfoot>
+            <tfoot><tr>{multi && <th></th>}<th>Total</th><th className="r">{rows.reduce((a, r) => a + r.n, 0)}</th><th className="r">{rows.reduce((a, r) => a + r.paidN, 0)}</th><th className="r">{gbp(tExp)}</th><th className="r">{gbp(tGot)}</th><th className="r">{gbp(tExp - tGot)}</th><th className="bar-col"></th></tr></tfoot>
           </table>
         </div>
       </section>
@@ -123,10 +123,10 @@ function Collection() {
           <table>
             <thead><tr><th>Received by</th><th className="r">Receipts</th><th className="r">Cash</th><th className="r">Bank transfer</th><th className="r">Total</th></tr></thead>
             <tbody>
-              {staff.map((x) => <tr key={x.id}><td><b>{userName(db, x.id)}</b></td><td className="r">{x.n}</td><td className="r">{fmt(x.cash)}</td><td className="r">{fmt(x.bank)}</td><td className="r"><b>{fmt(x.cash + x.bank)}</b></td></tr>)}
+              {staff.map((x) => <tr key={x.id}><td><b>{userName(db, x.id)}</b></td><td className="r">{x.n}</td><td className="r">{gbp(x.cash)}</td><td className="r">{gbp(x.bank)}</td><td className="r"><b>{gbp(x.cash + x.bank)}</b></td></tr>)}
               {!staff.length && <tr><td colSpan={5}><Empty title="No money received in this month" icon="receipt" /></td></tr>}
             </tbody>
-            {staff.length > 0 && <tfoot><tr><th>Total</th><th className="r">{inMonth.length}</th><th className="r">{fmt(cash)}</th><th className="r">{fmt(bank)}</th><th className="r">{fmt(cash + bank)}</th></tr></tfoot>}
+            {staff.length > 0 && <tfoot><tr><th>Total</th><th className="r">{inMonth.length}</th><th className="r">{gbp(cash)}</th><th className="r">{gbp(bank)}</th><th className="r">{gbp(cash + bank)}</th></tr></tfoot>}
           </table>
         </div>
       </section>
@@ -149,7 +149,7 @@ function Owed() {
   const short = (ms: string[]) => ms.map((m) => MON[Number(m.slice(5)) - 1]).join(", ");
   const exportCsv = () =>
     downloadCsv(`owed-list-${today}.csv`, [
-      ["Student no.", "Student", "Arabic name", "Branch", "Class", "Guardian", "Phone", "Second phone", "Months owing", "Months", `Total (${cur})`, "Status", "Latest payment note", "Promised by"],
+      ["Student no.", "Student", "Arabic name", "Branch", "Class", "Guardian", "Phone", "Second phone", "Months owing", "Months", `Total (£)`, "Status", "Latest payment note", "Promised by"],
       ...rows.map(({ s, months, total, note }) => [s.no, s.name, s.nameAr, branchName(db, s.branchId), className(db, s.classId), s.guardian, s.phone, s.phone2, months.length, months.map((m) => monthLabel(m, true)).join("; "), total, isActive(s) ? "Active" : "Left", note?.text || "", note?.promiseDate || ""]),
     ]);
   return (
@@ -164,7 +164,7 @@ function Owed() {
         </div>
       }>
       <div className="stats three">
-        <div className="stat"><span className="stat-l">Total owed</span><span className="stat-v owe">{fmt(total)}<small>{cur}</small></span><span className="stat-s">up to {monthLabel(now)}</span></div>
+        <div className="stat"><span className="stat-l">Total owed</span><span className="stat-v owe">{gbp(total)}</span><span className="stat-s">up to {monthLabel(now)}</span></div>
         <div className="stat"><span className="stat-l">Students owing</span><span className="stat-v">{rows.length}</span><span className="stat-s">{rows.filter((r) => r.months.length >= 2).length} owe two months or more</span></div>
         <div className="stat"><span className="stat-l">With a promise to pay</span><span className="stat-v">{rows.filter((r) => r.note?.promiseDate).length}</span><span className="stat-s">{rows.filter((r) => r.note?.promiseDate && r.note.promiseDate < today).length} past the promised date</span></div>
       </div>
@@ -193,13 +193,13 @@ function Owed() {
                   <td>{s.guardian}</td>
                   <td className="num nowrap">{s.phone}</td>
                   <td><Pill tone={months.length >= 2 ? "bad" : "warn"}>{months.length}</Pill> <span className="small">{short(months)}</span></td>
-                  <td className="r owe">{fmt(total)}</td>
+                  <td className="r owe">{gbp(total)}</td>
                   <td className="note-cell">{note ? <>{note.text}{note.promiseDate && <small className={note.promiseDate < today ? "owe" : ""}>Promised for {dateLabel(note.promiseDate)}</small>}</> : <span className="faint">–</span>}</td>
                   <td className="r no-print"><button type="button" className="btn sm" onClick={() => go("/collect/" + s.id)}>Collect</button></td>
                 </tr>
               ))}
             </tbody>
-            <tfoot><tr><th colSpan={multi ? 6 : 5}>Total</th><th className="r owe">{fmt(total)}</th><th></th><th className="no-print"></th></tr></tfoot>
+            <tfoot><tr><th colSpan={multi ? 6 : 5}>Total</th><th className="r owe">{gbp(total)}</th><th></th><th className="no-print"></th></tr></tfoot>
           </table>
         </section>
       )}
@@ -245,7 +245,7 @@ function Statement({ id }: { id?: string }) {
       <section className="card statement">
         <div className="statement-head">
           <div><h2>{s.name}</h2>{s.nameAr && <span lang="ar" className="ar">{s.nameAr}</span>}<span className="muted">{s.no} · {className(db, s.classId)} · {branchName(db, s.branchId)}</span><span className="muted">Guardian: {s.guardian} · {s.phone}</span></div>
-          <div className={"balance " + (tCharge - tPaid > 0 ? "bad" : "ok")}><span>Balance owed</span><b>{s.waived ? "Waived" : <>{fmt(Math.max(0, tCharge - tPaid))} <small>{cur}</small></>}</b></div>
+          <div className={"balance " + (tCharge - tPaid > 0 ? "bad" : "ok")}><span>Balance owed</span><b>{s.waived ? "Waived" : <>{gbp(Math.max(0, tCharge - tPaid))}</>}</b></div>
         </div>
         <div className="table-wrap">
           <table>
@@ -256,15 +256,15 @@ function Statement({ id }: { id?: string }) {
                 return (
                   <tr key={m}>
                     <td><b>{monthLabel(m)}</b></td>
-                    <td className="r">{fmt(charge(db, s, m))}</td><td className="r">{fmt(paid(db, s, m))}</td>
-                    <td className={"r" + (owed(db, s, m) > 0 && m <= now ? " owe" : " faint")}>{fmt(m <= now ? owed(db, s, m) : 0)}</td>
+                    <td className="r">{gbp(charge(db, s, m))}</td><td className="r">{gbp(paid(db, s, m))}</td>
+                    <td className={"r" + (owed(db, s, m) > 0 && m <= now ? " owe" : " faint")}>{gbp(m <= now ? owed(db, s, m) : 0)}</td>
                     <td>{label[st]}</td>
                     <td className="small">{recs.filter((r) => r.lines.some((l) => l.month === m)).map((r) => `${r.no}, ${dateLabel(r.date)}`).join(" · ") || <span className="faint">–</span>}</td>
                   </tr>
                 );
               })}
             </tbody>
-            <tfoot><tr><th>Total</th><th className="r">{fmt(tCharge)}</th><th className="r">{fmt(tPaid)}</th><th className="r owe">{fmt(balance(db, s, now))}</th><th></th><th></th></tr></tfoot>
+            <tfoot><tr><th>Total</th><th className="r">{gbp(tCharge)}</th><th className="r">{gbp(tPaid)}</th><th className="r owe">{gbp(balance(db, s, now))}</th><th></th><th></th></tr></tfoot>
           </table>
         </div>
         <dl className="kv">

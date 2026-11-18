@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { feeFor, fmt, monthLabel, ymOf } from "../logic";
+import { feeFor, gbp, monthLabel, ymOf } from "../logic";
 import { useScope } from "../scope";
 import { defaultBranch, findDuplicate, saveStudent, StudentInput, today } from "../store";
 import { Field, go, goBack, Icon, Page, toast } from "../ui";
@@ -71,7 +71,7 @@ export function StudentForm({ id }: { id?: string }) {
           <h2>Guardian</h2>
           <div className="form">
             <Field label="Guardian name"><input required value={v.guardian} onChange={(e) => set({ guardian: e.target.value })} autoComplete="off" /></Field>
-            <Field label="Phone" hint="Used when following up on payments"><input required type="tel" inputMode="tel" value={v.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="09x xxxxxxx" autoComplete="off" /></Field>
+            <Field label="Phone" hint="Used when following up on payments"><input required type="tel" inputMode="tel" value={v.phone} onChange={(e) => set({ phone: e.target.value })} placeholder="07xxx xxxxxx" autoComplete="off" /></Field>
             <Field label="Second phone (optional)"><input type="tel" inputMode="tel" value={v.phone2} onChange={(e) => set({ phone2: e.target.value })} autoComplete="off" /></Field>
           </div>
         </section>
@@ -93,7 +93,7 @@ export function StudentForm({ id }: { id?: string }) {
             <Field label="Start date" hint={`Charged from ${monthLabel(ymOf(v.start || today()))} onward`}><input required type="date" value={v.start} onChange={(e) => set({ start: e.target.value })} /></Field>
             <Field label="Monthly fee" hint={admin ? undefined : "Only an admin can waive the fee"}>
               <div className="choice">
-                <label><input type="radio" name="fee" checked={!v.waived} onChange={() => set({ waived: false })} /><span>{fmt(fee)} {cur}</span></label>
+                <label><input type="radio" name="fee" checked={!v.waived} onChange={() => set({ waived: false })} /><span>{gbp(fee)}</span></label>
                 <label className={admin ? "" : "disabled"}><input type="radio" name="fee" disabled={!admin} checked={v.waived} onChange={() => set({ waived: true })} /><span>Waived</span></label>
               </div>
             </Field>
